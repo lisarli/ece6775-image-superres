@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < TEST_SIZE; ++i) {
     FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
       pixel = input_image[r][c][chan];
-      bits_out = pixel(31,0);
+      bits_out = pixel(19,0);
       nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
       assert(nbytes == sizeof(bits_out));
     }
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
       nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
       assert(nbytes == sizeof(bits_out));
 
-      pixel(31,0) = nbytes;
+      pixel(19,0) = nbytes;
       output_image[r][c][chan] = pixel;
     }
   }
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < TEST_SIZE; ++i) {
       FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
         pixel = input_image[r][c][chan];
-        bits_out = pixel(31,0);
+        bits_out = pixel(19,0);
         nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
         assert(nbytes == sizeof(bits_out));
       }
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
         nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
         assert(nbytes == sizeof(bits_out));
 
-        pixel(31,0) = bits_out;
+        pixel(19,0) = bits_out;
         output_image[r][c][chan] = pixel;
       }
     }
