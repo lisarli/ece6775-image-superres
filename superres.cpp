@@ -34,8 +34,16 @@ vector<vector<Pixel>> convolve(const vector<vector<Pixel>>& input, const vector<
     return output;
 }
 
-Pixel relu(Pixel p) {
-    return {max(0.0f, p.r), max(0.0f, p.g), max(0.0f, p.b)};
+vector<vector<Pixel>> relu(const vector<vector<Pixel>>& image) {
+    vector<vector<Pixel>> result = image;
+    for (auto& row : result) {
+        for (auto& pixel : row) {
+            pixel = {std::min(1.0f, std::max(0.0f, pixel.r)), 
+                     std::min(1.0f, std::max(0.0f, pixel.g)), 
+                     std::min(1.0f, std::max(0.0f, pixel.b))};
+        }
+    }
+    return result;
 }
 
 // upsample using nearest-neighbor interpolation
@@ -62,19 +70,41 @@ vector<vector<Pixel>> superResolution(const vector<vector<Pixel>>& input, const 
     auto upscaledImage = upsample(input, scale);
 
     auto convolvedImage = convolve(upscaledImage, kernel);
+    convolvedImage = relu(convolvedImage);
 
-    for (auto& row : convolvedImage) {
-        for (auto& pixel : row) {
-            pixel = relu(pixel);
-        }
-    }
+    convolvedImage = convolve(convolvedImage, kernel);
+    convolvedImage = relu(convolvedImage);
+
+    convolvedImage = convolve(convolvedImage, kernel);
+    convolvedImage = relu(convolvedImage);
 
     return convolvedImage;
 }
 
+
 // create basic kernel
 vector<vector<float>> createKernel(int size) {
     return vector<vector<float>>(size, vector<float>(size, 1.0f / (size * size)));
+}
+
+// edge-sharpening kernel
+vector<vector<float>> createEdgeSharpeningKernel(int size) {
+    /* sharpening kernel
+    return {
+        {-0.0f, -1.0f, -0.0f},
+        {-1.0f,  5.0f, -1.0f},
+        {-0.0f, -1.0f, -0.0f}
+    };
+    */
+
+    // unsharp kernel
+    return {
+        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+        {-0.02344, -0.09375, 1.85980, -0.09375, -0.02344},
+        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+    };
 }
 
 // read in image
@@ -119,14 +149,19 @@ void printImage(const vector<vector<Pixel>>& image) {
     cout << endl;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        cerr << "Usage: " << argv[0] << " <input_image> <output_image>" << endl;
+        return 1;
+    }
+
     int width, height;
     int scale = 2;
-    string inputFile = "input_image.txt";
-    string outputFile = "output_image.txt";
+    string inputFile = argv[1];
+    string outputFile = argv[2];
 
     auto inputImage = readImage(inputFile, width, height);
-    auto kernel = createKernel(3);
+    auto kernel = createEdgeSharpeningKernel(3);
     auto result = superResolution(inputImage, kernel, scale);
     writeImage(outputFile, result);
 
