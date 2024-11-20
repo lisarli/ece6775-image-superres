@@ -140,7 +140,7 @@ vector<vector<float>> SRCNN(const vector<vector<float>>& inputImage) {
 
     int conv2_filters = 32;
     int conv2_channels = conv1_filters;
-    int conv2_patchsize = 1; // Since weights are scalar in provided weights.h
+    int conv2_patchsize = 5;
     vector<vector<vector<float>>> conv2_data(conv2_filters, vector<vector<float>>(newHeight, vector<float>(newWidth, 0.0f)));
 
     int conv3_channels = conv2_filters;
@@ -167,11 +167,21 @@ vector<vector<float>> SRCNN(const vector<vector<float>>& inputImage) {
         // Initialize sumData to zeros
         vector<vector<float>> sumData(newHeight, vector<float>(newWidth, 0.0f));
         for (int c = 0; c < conv2_channels; c++) {
-            // The weight for this channel and filter is conv2_subfilters[f][c][0]
-            float weight = conv2_subfilters[f][c][0];
+            // Reshape conv2_subfilters[f][c] to 5x5 kernel
+            // Reshape conv2_subfilters[f][c][25] to 5x5 kernel
+                vector<vector<float>> kernel(conv2_patchsize, vector<float>(conv2_patchsize, 0.0f));
+                for (int k = 0; k < 25; k++) {
+                    int m = k / conv2_patchsize;
+                    int n = k % conv2_patchsize;
+                    kernel[m][n] = conv2_subfilters[f][c][k];
+                }
+
+            vector<vector<float>> convResult(newHeight, vector<float>(newWidth, 0.0f));
+            convolve2D(conv1_data[c], convResult, kernel, 0.0f, false);
+            // Accumulate the result
             for (int i = 0; i < newHeight; i++) {
                 for (int j = 0; j < newWidth; j++) {
-                    sumData[i][j] += conv1_data[c][i][j] * weight;
+                    sumData[i][j] += convResult[i][j];
                 }
             }
         }
@@ -191,7 +201,7 @@ vector<vector<float>> SRCNN(const vector<vector<float>>& inputImage) {
     // Initialize im_h to zeros
     vector<vector<float>> sumData(newHeight, vector<float>(newWidth, 0.0f));
     for (int c = 0; c < conv3_channels; c++) {
-        // Reshape conv3_subfilters[c] to 2D kernel
+        // Reshape conv3_subfilters[c] to 5x5 kernel
         vector<vector<float>> kernel(conv3_patchsize, vector<float>(conv3_patchsize, 0.0f));
         for (int m = 0; m < conv3_patchsize; m++) {
             for (int n = 0; n < conv3_patchsize; n++) {
@@ -211,6 +221,8 @@ vector<vector<float>> SRCNN(const vector<vector<float>>& inputImage) {
     for (int i = 0; i < newHeight; i++) {
         for (int j = 0; j < newWidth; j++) {
             im_h[i][j] = sumData[i][j] + biases_conv3[0];
+            // Clip the pixel values to [0.0, 1.0]
+            im_h[i][j] = min(max(im_h[i][j], 0.0f), 1.0f);
         }
     }
 
