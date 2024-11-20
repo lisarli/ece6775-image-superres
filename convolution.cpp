@@ -140,7 +140,7 @@ vector<vector<float>> SRCNN(const vector<vector<float>>& inputImage) {
 
     int conv2_filters = 32;
     int conv2_channels = conv1_filters;
-    int conv2_patchsize = 5;
+    // Conv2 is a 1x1 convolution
     vector<vector<vector<float>>> conv2_data(conv2_filters, vector<vector<float>>(newHeight, vector<float>(newWidth, 0.0f)));
 
     int conv3_channels = conv2_filters;
@@ -162,26 +162,14 @@ vector<vector<float>> SRCNN(const vector<vector<float>>& inputImage) {
 
     cout << "Conv1 Output: " << conv1_filters << " filters, " << newHeight << "x" << newWidth << endl;
 
-    // Conv2
+    // Conv2 - 1x1 Convolution
     for (int f = 0; f < conv2_filters; f++) {
-        // Initialize sumData to zeros
         vector<vector<float>> sumData(newHeight, vector<float>(newWidth, 0.0f));
         for (int c = 0; c < conv2_channels; c++) {
-            // Reshape conv2_subfilters[f][c] to 5x5 kernel
-            // Reshape conv2_subfilters[f][c][25] to 5x5 kernel
-                vector<vector<float>> kernel(conv2_patchsize, vector<float>(conv2_patchsize, 0.0f));
-                for (int k = 0; k < 25; k++) {
-                    int m = k / conv2_patchsize;
-                    int n = k % conv2_patchsize;
-                    kernel[m][n] = conv2_subfilters[f][c][k];
-                }
-
-            vector<vector<float>> convResult(newHeight, vector<float>(newWidth, 0.0f));
-            convolve2D(conv1_data[c], convResult, kernel, 0.0f, false);
-            // Accumulate the result
+            float weight = conv2_subfilters[f][c][0];
             for (int i = 0; i < newHeight; i++) {
                 for (int j = 0; j < newWidth; j++) {
-                    sumData[i][j] += convResult[i][j];
+                    sumData[i][j] += conv1_data[c][i][j] * weight;
                 }
             }
         }
@@ -198,7 +186,7 @@ vector<vector<float>> SRCNN(const vector<vector<float>>& inputImage) {
     cout << "Conv2 Output: " << conv2_filters << " filters, " << newHeight << "x" << newWidth << endl;
 
     // Conv3
-    // Initialize im_h to zeros
+    // Initialize sumData to zeros
     vector<vector<float>> sumData(newHeight, vector<float>(newWidth, 0.0f));
     for (int c = 0; c < conv3_channels; c++) {
         // Reshape conv3_subfilters[c] to 5x5 kernel
