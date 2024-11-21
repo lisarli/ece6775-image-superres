@@ -11,7 +11,7 @@
 #include "typedefs.h"
 #include "timer.h"
 #include "model.h"
-#include "bnn.h"
+#include "superres.h"
 
 //------------------------------------------------------------------------
 // Helper function for reading images and labels

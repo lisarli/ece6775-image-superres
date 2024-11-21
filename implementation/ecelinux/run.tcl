@@ -1,10 +1,10 @@
 #=============================================================================
 # run_base.tcl 
 #=============================================================================
-# @brief: A Tcl script for synthesizing the baseline digit recongnition design.
+# @brief: A Tcl script for synthesizing the baseline image super-resolution.
 
 # Project name
-set hls_prj bnn.prj
+set hls_prj superres.prj
 
 # Open/reset the project
 open_project ${hls_prj} -reset
@@ -13,8 +13,8 @@ open_project ${hls_prj} -reset
 set_top dut
 
 # Add design and testbench files
-add_files bnn.cpp -cflags "-std=c++11"
-add_files -tb bnn_test.cpp -cflags "-std=c++11"
+add_files superres.cpp -cflags "-std=c++11"
+add_files -tb superres_test.cpp -cflags "-std=c++11"
 add_files -tb data
 
 open_solution "solution1"

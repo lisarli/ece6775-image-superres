@@ -1,9 +1,9 @@
 //==========================================================================
-// bnn.cpp
+// superres.cpp
 //==========================================================================
 // @brief: A convolution kernel for CNN on digit recognition
 
-#include "bnn.h"
+#include "superres.h"
 #include "layer.h"
 #include "model.h"
 #include <fstream>
@@ -30,20 +30,20 @@ void dut(hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out) {
       bitcount++;
     }
   }
-  // call bnn
-  output = bnn_xcel(input);
+  // call superres
+  output = superres_xcel(input);
 
   // write out the result
   strm_out.write(output);
 }
 
 //----------------------------------------------------------
-// BNN Accelerator
+// superres Accelerator
 //----------------------------------------------------------
 // @param[in] : input - the testing instance
 // @return : the predicted digit
 
-bit32_t bnn_xcel(bit input[1][I_WIDTH1][I_WIDTH1]) {
+bit32_t superres_xcel(bit input[1][I_WIDTH1][I_WIDTH1]) {
   bit input_padded[I_CHANNEL1][I_WIDTH1 + F_PAD][I_WIDTH1 + F_PAD];
   initialize_padded_memory<I_CHANNEL1, I_WIDTH1 + F_PAD, 1>(input_padded);
   bit conv1[O_CHANNEL1][I_WIDTH1][I_WIDTH1];

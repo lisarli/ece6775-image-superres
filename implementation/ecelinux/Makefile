@@ -1,7 +1,7 @@
 #==========================================================================
 # Makefile
 #==========================================================================
-# @brief: A makefile the compiles and synthesizes the bnn program
+# @brief: A makefile the compiles and synthesizes the superres program
 #
 # @desc: 1. "make" runs csim by default
 #        2. "make csim" compiles & executes the software implementation
@@ -21,20 +21,20 @@ TCL_SCRIPT=run.tcl
 
 all: csim
 
-bnn: bnn.cpp bnn_test.cpp
+superres: superres.cpp superres_test.cpp
 	g++ ${CFLAGS} $^ -o $@ -lrt
 
-result/bnn_csim.txt: bnn
-	@echo "Running bnn sim..."
+result/superres_csim.txt: superres
+	@echo "Running superres sim..."
 	mkdir -p result
 	./$< | tee $@
 
-csim: result/bnn_csim.txt
+csim: result/superres_csim.txt
 	@echo "Result recorded to $<"
 
 xillydemo.bit:
 	@echo "================================================================="
-	@echo "Synthesizing bnn and creating bitstream with $(TCL_SCRIPT)..."
+	@echo "Synthesizing superres and creating bitstream with $(TCL_SCRIPT)..."
 	@echo "================================================================="
 	$(XIL_HLS) -f $(TCL_SCRIPT)
 	source $(XILINX_VIVADO)/settings64.sh; ./run_bitstream.sh
@@ -43,5 +43,5 @@ bitstream: xillydemo.bit
 	@echo "Bitstream saved to $<"
 
 clean:
-	rm -rf bnn *.dat *.prj *.log
+	rm -rf superres *.dat *.prj *.log
 	rm -rf zedboard_project* xillydemo.bit

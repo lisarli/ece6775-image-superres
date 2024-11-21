@@ -1,7 +1,7 @@
 #==========================================================================
 # Makefile
 #==========================================================================
-# @brief: A makefile the compiles and runs the bnn program
+# @brief: A makefile the compiles and runs the superres program
 #
 # @desc: 1. "make" or "make sw" runs software execution by default
 #        2. "make fpga" invokes the HW accelerator
@@ -15,28 +15,28 @@ CFLAGS = -I${INC_PATH} -DHLS_NO_XIL_FPO_LIB -O3
 
 all: sw
 
-bnn-arm: bnn.cpp bnn_test.cpp
-	@echo "Compiling & executing bnn software program on ARM ..."
+superres-arm: superres.cpp superres_test.cpp
+	@echo "Compiling & executing superres software program on ARM ..."
 	g++ ${CFLAGS} $^ -o $@
 
-result/bnn_arm_sim.txt: bnn-arm
+result/superres_arm_sim.txt: superres-arm
 	mkdir -p result
 	./$< | tee $@
 
-sw: result/bnn_arm_sim.txt
+sw: result/superres_arm_sim.txt
 	@echo "Result saved to $@"
 
-bnn-fpga: host.cpp
+superres-fpga: host.cpp
 	@echo "Compiling host program"
 	g++ ${CFLAGS} $^ -o $@
 	@echo "Make sure bitstream is loaded!"
 
-fpga: bnn-fpga
-	@echo "Running bnn accelerator ..."
+fpga: superres-fpga
+	@echo "Running superres accelerator ..."
 	./$<
 
 # Clean up the directory before submission
 clean:
 	@echo "Clean up output files"
-	rm -rf bnn-arm vivado_hls.log *.prj result out.dat *~
-	rm -rf bnn-fpga
+	rm -rf superres-arm vivado_hls.log *.prj result out.dat *~
+	rm -rf superres-fpga

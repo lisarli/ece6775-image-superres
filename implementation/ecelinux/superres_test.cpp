@@ -1,12 +1,12 @@
 //=========================================================================
-// bnn_test.cpp
+// superres_test.cpp
 //=========================================================================
-// @brief: testbench for Binarized Neural Betwork(BNN) digit recongnition
+// @brief: testbench for Binarized Neural Betwork(superres) digit recongnition
 // application
 
 #include <iostream>
 #include <fstream>
-#include "bnn.h"
+#include "superres.h"
 #include "timer.h"
 
 using namespace std;
@@ -61,7 +61,7 @@ int main() {
   float correct = 0.0;
 
   // Timer
-  Timer timer("digirec BNN");
+  Timer timer("digirec superres");
   timer.start();
 
   // pack images to 32-bit and transmit to dut function
