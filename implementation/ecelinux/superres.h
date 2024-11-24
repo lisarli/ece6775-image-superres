@@ -5,14 +5,13 @@
 
 #ifndef SUPERRES_H
 #define SUPERRES_H
-#include "model.h"
 #include "typedefs.h"
 #include <hls_stream.h>
 
 // Top function for synthesis
-void dut(hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out);
+void dut(hls::stream<float> &strm_in, hls::stream<float> &strm_out);
 
 // Top function for superres accelerator
-bit32_t superres_xcel(bit input[1][I_WIDTH1][I_WIDTH1]);
+void superres_xcel(float input_image[ORIG_HEIGHT][ORIG_WIDTH][3], float output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3]);
 
 #endif

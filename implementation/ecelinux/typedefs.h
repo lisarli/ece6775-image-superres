@@ -15,4 +15,13 @@ typedef ap_uint<2> bit2_t;
 typedef ap_uint<4> bit4_t;
 typedef ap_uint<32> bit32_t;
 
+constexpr int SCALE_FACTOR = 2;
+constexpr int ORIG_WIDTH = 4;
+constexpr int ORIG_HEIGHT = 4;
+
+#define FOR_PIXELS(r, c, chan, H, W) \
+    for (int r = 0; r < H; ++r) \
+        for (int c = 0; c < W; ++c) \
+            for (int chan = 0; chan < 3; ++chan)
+
 #endif

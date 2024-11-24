@@ -18,72 +18,62 @@ const int TEST_SIZE = 100;
 // Helper function for reading images and labels
 //------------------------------------------------------------------------
 
-void read_test_images(int8_t test_images[TEST_SIZE][256]) {
-  std::ifstream infile("data/test_images.dat");
+void read_test_image(float input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
+  std::ifstream infile("data/input_image.txt");
   if (infile.is_open()) {
-    for (int index = 0; index < TEST_SIZE; index++) {
-      for (int pixel = 0; pixel < 256; pixel++) {
-        int i;
-        infile >> i;
-        test_images[index][pixel] = i;
+    std::string line;
+    for (int r = 0; r < ORIG_HEIGHT; ++r) {
+      for (int c = 0; c < ORIG_WIDTH; ++c) {
+        std::getline(infile, line);
+        std::istringstream iss(line);
+        iss >> input_image[r][c][0] >> input_image[r][c][1] >> input_image[r][c][2];
       }
     }
     infile.close();
   }
 }
 
-void read_test_labels(int test_labels[TEST_SIZE]) {
-  std::ifstream infile("data/test_labels.dat");
-  if (infile.is_open()) {
-    for (int index = 0; index < TEST_SIZE; index++) {
-      infile >> test_labels[index];
-    }
-    infile.close();
-  }
-}
-
 //------------------------------------------------------------------------
-// Digitrec testbench
+// superres testbench
 //------------------------------------------------------------------------
 
 int main() {
   // HLS streams for communicating with the cordic block
-  hls::stream<bit32_t> digitrec_in;
-  hls::stream<bit32_t> digitrec_out;
+  hls::stream<float> superres_in;
+  hls::stream<float> superres_out;
 
-  int8_t test_images[TEST_SIZE][256];
-  int test_labels[TEST_SIZE];
+  float input_image[ORIG_HEIGHT][ORIG_WIDTH][3];
+  float output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
 
   // read test images and labels
-  read_test_images(test_images);
-  read_test_labels(test_labels);
-  bit32_t test_image;
-  float correct = 0.0;
+  read_test_image(input_image);
 
   // Timer
   Timer timer("digirec superres");
   timer.start();
 
-  // pack images to 32-bit and transmit to dut function
-  for (int test = 0; test < TEST_SIZE; test++) {
-    for (int i = 0; i < I_WIDTH1 * I_WIDTH1 / BUS_WIDTH; i++) {
-      for (int j = 0; j < BUS_WIDTH; j++) {
-        test_image(j, j) = test_images[test][i * BUS_WIDTH + j];
+  for (int i = 0; i < TEST_SIZE; ++i) {
+    for (int r = 0; r < ORIG_HEIGHT; ++r) {
+      for (int c = 0; c < ORIG_WIDTH; ++c) {
+        for (int channel = 0; channel < 3; ++channel) {
+          superres_in.write(input_image[r][c][channel]);
+        }
       }
-      digitrec_in.write(test_image);
     }
 
-    // perform prediction
-    dut(digitrec_in, digitrec_out);
+    dut(superres_in, superres_out);
+    
+    for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r) {
+      for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c) {
+        for (int channel = 0; channel < 3; ++channel) {
+          output_image[r][c][channel] = superres_out.read();
+        }
+      }
+    }
 
-    // check results
-    if (digitrec_out.read() == test_labels[test])
-      correct += 1.0;
+    // TODO write output image to file
   }
+
   timer.stop();
-
-  // Calculate accuracy
-  std::cout << "Accuracy: " << correct / TEST_SIZE << std::endl;
-
   return 0;
 }
