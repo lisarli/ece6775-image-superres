@@ -11,7 +11,9 @@
 template <int H, int W, int S>
 void upsample(float input[H][W][3], float output[H * S][W * S][3])
 {
-  
+  FOR_PIXELS(r, c, chan, H * S, W * S) {
+    output[r][c][chan] = input[r / S][c / S][chan];
+  }
 }
 
 // //----------------------------------------------------------

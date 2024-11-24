@@ -44,4 +44,6 @@ void superres_xcel(float input_image[ORIG_HEIGHT][ORIG_WIDTH][3], float output_i
         {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
         {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
     };
+  
+  upsample<ORIG_HEIGHT, ORIG_WIDTH, SCALE_FACTOR>(input_image, output_image);
 }
