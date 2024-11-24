@@ -44,16 +44,13 @@ void superres_xcel(float input_image[ORIG_HEIGHT][ORIG_WIDTH][3], float output_i
         {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
         {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
     };
-  
-  // we swap between output_image and buffer for convolution
-  float buffer[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3] = {0.0f};
+    
+  upsample<ORIG_HEIGHT, ORIG_WIDTH, SCALE_FACTOR>(input_image, output_image);
 
-  upsample<ORIG_HEIGHT, ORIG_WIDTH, SCALE_FACTOR>(input_image, buffer);
-
-  convolve<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR, 5>(buffer, output_image, EDGE_SHARPENING_KERNEL);
+  convolve<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR, 5>(output_image, EDGE_SHARPENING_KERNEL);
   relu<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR>(output_image);
-  convolve<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR, 5>(output_image, buffer, EDGE_SHARPENING_KERNEL);
-  relu<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR>(buffer);
-  convolve<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR, 5>(buffer, output_image, EDGE_SHARPENING_KERNEL);
+  convolve<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR, 5>(output_image, EDGE_SHARPENING_KERNEL);
+  relu<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR>(output_image);
+  convolve<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR, 5>(output_image, EDGE_SHARPENING_KERNEL);
   relu<ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR>(output_image);
 }
