@@ -15,6 +15,8 @@ typedef ap_uint<2> bit2_t;
 typedef ap_uint<4> bit4_t;
 typedef ap_uint<32> bit32_t;
 
+typedef ap_fixed<32,8> pixel_type;
+
 constexpr int SCALE_FACTOR = 2;
 constexpr int ORIG_WIDTH = 4;
 constexpr int ORIG_HEIGHT = 4;
