@@ -36,6 +36,13 @@ void convolve(float input[H][W][3], float output[H][W][3], const float kernel[KS
   }
 }
 
+template <int H, int W>
+void relu(float buffer[H][W][3]) {
+  FOR_PIXELS(r, c, chan, H, W) {
+    buffer[r][c][chan] = std::min(1.0f, std::max(0.0f, buffer[r][c][chan]));
+  }
+}
+
 // //----------------------------------------------------------
 // // Padding
 // //----------------------------------------------------------
