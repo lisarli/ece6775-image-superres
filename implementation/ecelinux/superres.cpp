@@ -20,9 +20,9 @@ void dut(hls::stream<float> &strm_in, hls::stream<float> &strm_out) {
   float output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
 
   FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
-    input_image[r][c][channel] = strm_in.read();
+    input_image[r][c][chan] = strm_in.read();
   }
-  
+
   superres_xcel(input_image, output_image);
 
   FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {

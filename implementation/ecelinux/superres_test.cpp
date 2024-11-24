@@ -53,22 +53,14 @@ int main() {
   timer.start();
 
   for (int i = 0; i < TEST_SIZE; ++i) {
-    for (int r = 0; r < ORIG_HEIGHT; ++r) {
-      for (int c = 0; c < ORIG_WIDTH; ++c) {
-        for (int channel = 0; channel < 3; ++channel) {
-          superres_in.write(input_image[r][c][channel]);
-        }
-      }
+    FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
+      superres_in.write(input_image[r][c][chan]);
     }
 
     dut(superres_in, superres_out);
     
-    for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r) {
-      for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c) {
-        for (int channel = 0; channel < 3; ++channel) {
-          output_image[r][c][channel] = superres_out.read();
-        }
-      }
+    FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
+      output_image[r][c][chan] = superres_out.read();
     }
 
     // TODO write output image to file
