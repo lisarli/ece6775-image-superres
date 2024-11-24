@@ -16,6 +16,26 @@ void upsample(float input[H][W][3], float output[H * S][W * S][3])
   }
 }
 
+template <int H, int W, int KS>
+void convolve(float input[H][W][3], float output[H][W][3], const float kernel[KS][KS])
+{
+  for (int i = KS / 2; i < H - KS / 2; ++i) {
+    for (int j = KS / 2; j < W - KS / 2; ++j) {
+      float result[3] = {0.0f, 0.0f, 0.0f};
+      for (int ki = -KS / 2; ki <= KS / 2; ++ki) {
+        for (int kj = -KS / 2; kj <= KS / 2; ++kj) {
+          result[0] += input[i + ki][j + kj][0] * kernel[ki + KS / 2][kj + KS / 2];
+          result[1] += input[i + ki][j + kj][1] * kernel[ki + KS / 2][kj + KS / 2];
+          result[2] += input[i + ki][j + kj][2] * kernel[ki + KS / 2][kj + KS / 2];
+        }
+      }
+      for (int chan = 0; chan < 3; ++chan) {
+        output[i][j][chan] = result[chan];
+      }
+    }
+  }
+}
+
 // //----------------------------------------------------------
 // // Padding
 // //----------------------------------------------------------
