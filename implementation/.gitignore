@@ -1,2 +1,6 @@
 ecelinux/superres
 ecelinux/result/
+ecelinux/superres.prj/
+ecelinux/zedboard_project/
+ecelinux/vivado_hls.log
+ecelinux/zedboard_project.tgz

@@ -36,10 +36,20 @@ void convolve(float buffer[H][W][3], const float kernel[KS][KS])
   }
 }
 
+template <typename T>
+inline T min(T a, T b) {
+  return a < b ? a : b;
+}
+
+template <typename T>
+inline T max(T a, T b) {
+  return a > b ? a : b;
+}
+
 template <int H, int W>
 void relu(float buffer[H][W][3]) {
   FOR_PIXELS(r, c, chan, H, W) {
-    buffer[r][c][chan] = std::min(1.0f, std::max(0.0f, buffer[r][c][chan]));
+    buffer[r][c][chan] = min(1.0f, max(0.0f, buffer[r][c][chan]));
   }
 }
 
