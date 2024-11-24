@@ -33,6 +33,15 @@ void read_test_image(float input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
   }
 }
 
+void write_test_image(float output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3]) {
+  std::ofstream outfile("data/output_image.txt");
+  for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r) {
+    for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c) {
+      outfile << std::fixed << std::setprecision(2) << output_image[r][c][0] << " " << output_image[r][c][1] << " " << output_image[r][c][2] << std::endl;
+    }
+  }
+}
+
 //------------------------------------------------------------------------
 // superres testbench
 //------------------------------------------------------------------------
@@ -67,5 +76,7 @@ int main() {
   }
 
   timer.stop();
+
+  write_test_image(output_image);
   return 0;
 }
