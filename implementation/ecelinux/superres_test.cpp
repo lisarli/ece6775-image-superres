@@ -18,7 +18,7 @@ const int TEST_SIZE = 100;
 // Helper function for reading images and labels
 //------------------------------------------------------------------------
 
-void read_test_image(double input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
+void read_test_image(float input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
   std::ifstream infile("data/input_image.txt");
   if (infile.is_open()) {
     std::string line;
@@ -33,7 +33,7 @@ void read_test_image(double input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
   }
 }
 
-void write_test_image(double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3]) {
+void write_test_image(float output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3]) {
   std::ofstream outfile("data/output_image.txt");
   for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r) {
     for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c) {
@@ -51,8 +51,8 @@ int main() {
   hls::stream<bit32_t> superres_in;
   hls::stream<bit32_t> superres_out;
 
-  double input_image[ORIG_HEIGHT][ORIG_WIDTH][3];
-  double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
+  float input_image[ORIG_HEIGHT][ORIG_WIDTH][3];
+  float output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
 
   // read test images and labels
   read_test_image(input_image);
@@ -63,19 +63,19 @@ int main() {
 
   pixel_type pixel;
   bit32_t bits_out;
+  union { float fval; int ival; } u;
 
   for (int i = 0; i < TEST_SIZE; ++i) {
     FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
-      pixel = input_image[r][c][chan];
-      bits_out = pixel(31,0);
-      superres_in.write(bits_out);
+      u.fval = input_image[r][c][chan];
+      superres_in.write(u.ival);
     }
 
     dut(superres_in, superres_out);
     
     FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-      pixel(31,0) = superres_out.read();
-      output_image[r][c][chan] = pixel;
+      u.ival = superres_out.read();
+      output_image[r][c][chan] = u.fval;
     }
   }
 

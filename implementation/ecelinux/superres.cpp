@@ -20,17 +20,18 @@ void dut(hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out) {
   pixel_type output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
   pixel_type pixel_in;
   bit32_t bits_out;
+  union { float fval; int ival; } u;
 
   FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
-    pixel_in(31,0) = strm_in.read();
-    input_image[r][c][chan] = pixel_in;
+    u.ival = strm_in.read();
+    input_image[r][c][chan] = u.fval;
   }
 
   superres_xcel(input_image, output_image);
 
   FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-    bit32_t bits_out = output_image[r][c][chan](31,0);
-    strm_out.write(bits_out);
+    u.fval = output_image[r][c][chan];
+    strm_out.write(u.ival);
   }
 }
 
