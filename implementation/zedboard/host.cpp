@@ -10,7 +10,6 @@
 
 #include "typedefs.h"
 #include "timer.h"
-#include "model.h"
 #include "superres.h"
 
 //------------------------------------------------------------------------
@@ -19,29 +18,31 @@
 const int TEST_SIZE = 100; // number of test instances
 const int REPS = 20; // run over the 100 test instances 20 times to saturate the accelerator
 
-void read_test_images(int8_t test_images[TEST_SIZE][256]) {
-  std::ifstream infile("data/test_images.dat");
+void read_test_image(double input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
+  std::ifstream infile("data/input_image.txt");
   if (infile.is_open()) {
-    for (int index = 0; index < TEST_SIZE; index++) {
-      for (int pixel = 0; pixel < 256; pixel++) {
-        int i;
-        infile >> i;
-        test_images[index][pixel] = i;
+    std::string line;
+    for (int r = 0; r < ORIG_HEIGHT; ++r) {
+      for (int c = 0; c < ORIG_WIDTH; ++c) {
+        std::getline(infile, line);
+        std::istringstream iss(line);
+        iss >> input_image[r][c][0] >> input_image[r][c][1] >> input_image[r][c][2];
       }
     }
     infile.close();
   }
 }
 
-void read_test_labels(int test_labels[TEST_SIZE]) {
-  std::ifstream infile("data/test_labels.dat");
-  if (infile.is_open()) {
-    for (int index = 0; index < TEST_SIZE; index++) {
-      infile >> test_labels[index];
+
+void write_test_image(double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3]) {
+  std::ofstream outfile("data/output_image.txt");
+  for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r) {
+    for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c) {
+      outfile << std::fixed << std::setprecision(2) << output_image[r][c][0] << " " << output_image[r][c][1] << " " << output_image[r][c][2] << std::endl;
     }
-    infile.close();
   }
 }
+
 
 //--------------------------------------
 // main function
@@ -58,51 +59,53 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
-  // Arrays to store test data and expected results (labels)
-  int8_t test_images[TEST_SIZE][256];
-  bit32_t test_image;
-  int test_labels[TEST_SIZE];
+  // Arrays to store input and output images
+  double input_image[ORIG_HEIGHT][ORIG_WIDTH][3];
+  double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
+
+  //--------------------------------------------------------------------
+  // Read test image into array
+  //--------------------------------------------------------------------
+  read_test_image(input_image);
 
   // Timer
-  Timer timer("digitrec bnn on FPGA");
+  Timer timer("image superres");
   // intermediate results
   int nbytes;
   int error = 0;
   int num_test_insts = 0;
   float correct = 0.0;
 
-  //--------------------------------------------------------------------
-  // Read data from the input file into two arrays
-  //--------------------------------------------------------------------
-  read_test_images(test_images);
-  read_test_labels(test_labels);
 
   //--------------------------------------------------------------------
   // Run it once without timer to test accuracy
   //--------------------------------------------------------------------
-  std::cout << "Testing accuracy over " << TEST_SIZE << " images." << std::endl;
+  std::cout << "Running Image Superres on Zedboard" << std::endl;
+
+  pixel_type pixel;
+  bit32_t bits_out;
+
   // Send data to accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
-    // Send 32-bit value through the write channel
-    for (int j = 0; j < 8; j++) {
-      for (int k = 0; k < 32; k++) {
-        test_image(k, k) = test_images[i][j * 32 + k];
-      }
-      nbytes = write(fdw, (void *)&test_image, sizeof(test_image));
-      assert(nbytes == sizeof(test_image));
+    FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
+      pixel = input_image[r][c][chan];
+      bits_out = pixel(31,0);
+      nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
+      assert(nbytes == sizeof(bits_out));
     }
   }
-  // Receive data from the accelerator
+
+  // Receive data from accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
-    bit32_t output;
-    nbytes = read(fdr, (void *)&output, sizeof(output));
-    assert(nbytes == sizeof(output));
-    // verify results
-    if (output == test_labels[i])
-      correct += 1.0;
+    FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
+
+      nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
+      assert(nbytes == sizeof(bits_out));
+
+      pixel(31,0) = nbytes;
+      output_image[r][c][chan] = pixel;
+    }
   }
-  // Calculate error rate
-  std::cout << "Accuracy: " << correct / TEST_SIZE << std::endl;
 
   //--------------------------------------------------------------------
   // Run it 20 times to test performance
@@ -112,25 +115,25 @@ int main(int argc, char **argv) {
   // Send data to accelerator
   for (int r = 0; r < REPS; r++) {
     for (int i = 0; i < TEST_SIZE; ++i) {
-      // Send 32-bit value through the write channel
-      for (int j = 0; j < 8; j++) {
-        for (int k = 0; k < 32; k++) {
-          test_image(k, k) = test_images[i][j * 32 + k];
-        }
-        nbytes = write(fdw, (void *)&test_image, sizeof(test_image));
-        assert(nbytes == sizeof(test_image));
+      FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
+        pixel = input_image[r][c][chan];
+        bits_out = pixel(31,0);
+        nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
+        assert(nbytes == sizeof(bits_out));
       }
     }
   }
   // Receive data from the accelerator
   for (int r = 0; r < REPS; r++) {
     for (int i = 0; i < TEST_SIZE; ++i) {
-      bit32_t output;
-      nbytes = read(fdr, (void *)&output, sizeof(output));
-      assert(nbytes == sizeof(output));
-      // verify results
-      if (output == test_labels[i])
-        correct += 1.0;
+      FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
+
+        nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
+        assert(nbytes == sizeof(bits_out));
+
+        pixel(31,0) = nbytes;
+        output_image[r][c][chan] = pixel;
+      }
     }
   }
   timer.stop();

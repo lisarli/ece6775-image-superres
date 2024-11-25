@@ -17,9 +17,9 @@ typedef ap_uint<32> bit32_t;
 
 typedef ap_fixed<32,8> pixel_type;
 
-constexpr int SCALE_FACTOR = 2;
-constexpr int ORIG_WIDTH = 4;
-constexpr int ORIG_HEIGHT = 4;
+const int SCALE_FACTOR = 2;
+const int ORIG_WIDTH = 4;
+const int ORIG_HEIGHT = 4;
 
 #define FOR_PIXELS(r, c, chan, H, W) \
     for (int r = 0; r < H; ++r) \
