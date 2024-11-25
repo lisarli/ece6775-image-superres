@@ -11,15 +11,29 @@
 template <int H, int W, int S>
 void upsample(pixel_type input[H][W][3], pixel_type output[H * S][W * S][3])
 {
-  FOR_PIXELS(r, c, chan, H * S, W * S) {
-    output[r][c][chan] = input[r / S][c / S][chan];
+  for (int r = 0; r < H*S; ++r){
+    #pragma HLS pipeline
+    for (int c = 0; c < W*S; ++c){
+      #pragma HLS unroll
+      for (int chan = 0; chan < 3; ++chan){
+        #pragma HLS unroll
+        output[r][c][chan] = input[r / S][c / S][chan];
+      }
+    }
   }
 }
 
 template <int H, int W, int C>
 void initialize_memory(pixel_type input[H][W][3]) {
-  FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-    input[r][c][chan] = C;
+  for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r){
+    #pragma HLS pipeline
+    for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c){
+      #pragma HLS unroll
+      for (int chan = 0; chan < 3; ++chan){
+      #pragma HLS unroll
+        input[r][c][chan] = C;
+      }
+    }
   }
 }
 
@@ -32,7 +46,9 @@ void convolve(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
   for (int i = KS / 2; i < H - KS / 2; ++i) {
     for (int j = KS / 2; j < W - KS / 2; ++j) {
       for (int ki = -KS / 2; ki <= KS / 2; ++ki) {
+        #pragma HLS unroll
         for (int kj = -KS / 2; kj <= KS / 2; ++kj) {
+          #pragma HLS unroll
           output[i][j][0] += buffer[i + ki][j + kj][0] * kernel[ki + KS / 2][kj + KS / 2];
           output[i][j][1] += buffer[i + ki][j + kj][1] * kernel[ki + KS / 2][kj + KS / 2];
           output[i][j][2] += buffer[i + ki][j + kj][2] * kernel[ki + KS / 2][kj + KS / 2];
@@ -55,8 +71,15 @@ inline pixel_type max(pixel_type a, pixel_type b) {
 
 template <int H, int W>
 void relu(pixel_type buffer[H][W][3]) {
-  FOR_PIXELS(r, c, chan, H, W) {
-    buffer[r][c][chan] = min(1.0, max(0.0, buffer[r][c][chan]));
+  for (int r = 0; r < H; ++r){
+    #pragma HLS pipeline
+    for (int c = 0; c < W; ++c){
+      #pragma HLS unroll
+      for (int chan = 0; chan < 3; ++chan){
+        #pragma HLS unroll
+        buffer[r][c][chan] = min(1.0, max(0.0, buffer[r][c][chan]));
+      }
+    }
   }
 }
 
