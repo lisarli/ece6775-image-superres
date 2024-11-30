@@ -15,22 +15,18 @@ using namespace std;
 // Top function
 //----------------------------------------------------------
 
-void dut(hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out) {
+void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out) {
   pixel_type input_image[ORIG_HEIGHT][ORIG_WIDTH][3];
   pixel_type output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
-  pixel_type pixel_in;
-  bit32_t bits_out;
 
   FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
-    pixel_in(31,0) = strm_in.read();
-    input_image[r][c][chan] = pixel_in;
+    input_image[r][c][chan] = strm_in.read();
   }
 
   superres_xcel(input_image, output_image);
 
   FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-    bit32_t bits_out = output_image[r][c][chan](31,0);
-    strm_out.write(bits_out);
+    strm_out.write(output_image[r][c][chan]);
   }
 }
 

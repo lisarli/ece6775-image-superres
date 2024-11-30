@@ -48,8 +48,8 @@ void write_test_image(double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH
 
 int main() {
   // HLS streams for communicating with the cordic block
-  hls::stream<bit32_t> superres_in;
-  hls::stream<bit32_t> superres_out;
+  hls::stream<pixel_type> superres_in;
+  hls::stream<pixel_type> superres_out;
 
   double input_image[ORIG_HEIGHT][ORIG_WIDTH][3];
   double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
@@ -61,21 +61,15 @@ int main() {
   Timer timer("image superres");
   timer.start();
 
-  pixel_type pixel;
-  bit32_t bits_out;
-
   for (int i = 0; i < TEST_SIZE; ++i) {
     FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
-      pixel = input_image[r][c][chan];
-      bits_out = pixel(31,0);
-      superres_in.write(bits_out);
+      superres_in.write(input_image[r][c][chan]);
     }
 
     dut(superres_in, superres_out);
     
     FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-      pixel(31,0) = superres_out.read();
-      output_image[r][c][chan] = pixel;
+      output_image[r][c][chan] = superres_out.read();
     }
   }
 
