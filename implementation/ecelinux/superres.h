@@ -12,6 +12,6 @@
 void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out);
 
 // Top function for superres accelerator
-void superres_xcel(pixel_type input_image[ORIG_HEIGHT][ORIG_WIDTH][3], pixel_type output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3]);
+void superres_xcel(pixel_type input_image[BLOCK_SIZE][BLOCK_SIZE][3], pixel_type output_image[BLOCK_SIZE * SCALE_FACTOR][BLOCK_SIZE * SCALE_FACTOR][3]);
 
 #endif

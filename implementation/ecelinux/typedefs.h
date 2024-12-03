@@ -18,8 +18,8 @@ typedef ap_uint<32> bit32_t;
 typedef ap_fixed<20,2> pixel_type;
 
 const int SCALE_FACTOR = 2;
-const int ORIG_WIDTH = 20;
-const int ORIG_HEIGHT = 20;
+const int BLOCK_SIZE = 20;
+const int IMAGE_DIM = 100;
 
 #define FOR_PIXELS(r, c, chan, H, W) \
     for (int r = 0; r < H; ++r) \

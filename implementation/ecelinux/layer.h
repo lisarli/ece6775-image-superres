@@ -8,6 +8,16 @@
 
 #include "typedefs.h"
 
+template <typename T>
+inline T min(T a, T b) {
+  return a < b ? a : b;
+}
+
+template <typename T>
+inline T max(T a, T b) {
+  return a > b ? a : b;
+}
+
 template <int H, int W, int S>
 void upsample(pixel_type input[H][W][3], pixel_type output[H * S][W * S][3])
 {
@@ -31,9 +41,9 @@ template <int H, int W, int C>
 void initialize_memory(pixel_type input[H][W][3]) {
   #pragma HLS array_partition variable=input complete dim=3
   #pragma HLS array_partition variable=input cyclic factor=10 dim=2
-  for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r){
+  for (int r = 0; r < H; ++r){
     #pragma HLS pipeline
-    for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c){
+    for (int c = 0; c < W; ++c){
       #pragma HLS unroll
       for (int chan = 0; chan < 3; ++chan){
       #pragma HLS unroll
@@ -53,16 +63,18 @@ void convolve(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
   pixel_type output[H][W][3];
   initialize_memory<H,W,0>(output);
   
-  for (int i = KS / 2; i < H - KS / 2; ++i) {
-    for (int j = KS / 2; j < W - KS / 2; ++j) {
+  for (int i = 0; i < H; ++i) {
+    for (int j = 0; j < W; ++j) {
       #pragma HLS pipeline
       for (int ki = -KS / 2; ki <= KS / 2; ++ki) {
         #pragma HLS unroll
         for (int kj = -KS / 2; kj <= KS / 2; ++kj) {
           #pragma HLS unroll
-          output[i][j][0] += buffer[i + ki][j + kj][0] * kernel[ki + KS / 2][kj + KS / 2];
-          output[i][j][1] += buffer[i + ki][j + kj][1] * kernel[ki + KS / 2][kj + KS / 2];
-          output[i][j][2] += buffer[i + ki][j + kj][2] * kernel[ki + KS / 2][kj + KS / 2];
+          int r = max<int>(0,min<int>(i+ki,H-1));
+          int c = max<int>(0,min<int>(j+kj,W-1));
+          output[i][j][0] += buffer[r][c][0] * kernel[ki + KS / 2][kj + KS / 2];
+          output[i][j][1] += buffer[r][c][1] * kernel[ki + KS / 2][kj + KS / 2];
+          output[i][j][2] += buffer[r][c][2] * kernel[ki + KS / 2][kj + KS / 2];
         }
       }
     }
@@ -80,14 +92,6 @@ void convolve(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
   }
 }
 
-inline pixel_type min(pixel_type a, pixel_type b) {
-  return a < b ? a : b;
-}
-
-inline pixel_type max(pixel_type a, pixel_type b) {
-  return a > b ? a : b;
-}
-
 template <int H, int W>
 void relu(pixel_type buffer[H][W][3]) {
   #pragma HLS array_partition variable=buffer complete dim=3
@@ -99,7 +103,7 @@ void relu(pixel_type buffer[H][W][3]) {
       #pragma HLS unroll
       for (int chan = 0; chan < 3; ++chan){
         #pragma HLS unroll
-        buffer[r][c][chan] = min(1.0, max(0.0, buffer[r][c][chan]));
+        buffer[r][c][chan] = min<pixel_type>(1.0, max<pixel_type>(0.0, buffer[r][c][chan]));
       }
     }
   }
