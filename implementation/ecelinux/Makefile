@@ -21,7 +21,7 @@ TCL_SCRIPT=run.tcl
 
 all: csim
 
-superres: superres.cpp superres_test.cpp
+superres: superres.cpp superres_test.cpp superres.h layer.h typedefs.h
 	g++ ${CFLAGS} $^ -o $@ -lrt
 
 result/superres_csim.txt: superres
