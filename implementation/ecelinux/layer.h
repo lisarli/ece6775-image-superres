@@ -41,7 +41,7 @@ void convolve(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
     }
   }
   FOR_PIXELS(r, c, chan, H, W) {
-    buffer[r][c][chan] = output[r][c][chan];
+    buffer[r][c][chan] =  min(1.0, max(0.0, output[r][c][chan]));
   }
 }
 
@@ -51,13 +51,6 @@ inline pixel_type min(pixel_type a, pixel_type b) {
 
 inline pixel_type max(pixel_type a, pixel_type b) {
   return a > b ? a : b;
-}
-
-template <int H, int W>
-void relu(pixel_type buffer[H][W][3]) {
-  FOR_PIXELS(r, c, chan, H, W) {
-    buffer[r][c][chan] = min(1.0, max(0.0, buffer[r][c][chan]));
-  }
 }
 
 #endif
