@@ -18,12 +18,12 @@
 const int TEST_SIZE = 100; // number of test instances
 const int REPS = 20; // run over the 100 test instances 20 times to saturate the accelerator
 
-void read_test_image(double input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
+void read_test_image(double input_image[ORIG_DIM][ORIG_DIM][3]) {
   std::ifstream infile("data/input_image.txt");
   if (infile.is_open()) {
     std::string line;
-    for (int r = 0; r < ORIG_HEIGHT; ++r) {
-      for (int c = 0; c < ORIG_WIDTH; ++c) {
+    for (int r = 0; r < ORIG_DIM; ++r) {
+      for (int c = 0; c < ORIG_DIM; ++c) {
         std::getline(infile, line);
         std::istringstream iss(line);
         iss >> input_image[r][c][0] >> input_image[r][c][1] >> input_image[r][c][2];
@@ -34,10 +34,10 @@ void read_test_image(double input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
 }
 
 
-void write_test_image(double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3]) {
+void write_test_image(double output_image[OUT_DIM][OUT_DIM][3]) {
   std::ofstream outfile("data/output_image.txt");
-  for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r) {
-    for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c) {
+  for (int r = 0; r < OUT_DIM; ++r) {
+    for (int c = 0; c < OUT_DIM; ++c) {
       outfile << std::fixed << std::setprecision(2) << output_image[r][c][0] << " " << output_image[r][c][1] << " " << output_image[r][c][2] << std::endl;
     }
   }
@@ -60,8 +60,8 @@ int main(int argc, char **argv) {
   }
 
   // Arrays to store input and output images
-  double input_image[ORIG_HEIGHT][ORIG_WIDTH][3];
-  double output_image[ORIG_HEIGHT * SCALE_FACTOR][ORIG_WIDTH * SCALE_FACTOR][3];
+  double input_image[ORIG_DIM][ORIG_DIM][3];
+  double output_image[OUT_DIM][OUT_DIM][3];
 
   //--------------------------------------------------------------------
   // Read test image into array
@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
 
   // Send data to accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
-    FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
+    FOR_PIXELS(r, c, chan, ORIG_DIM, ORIG_DIM) {
       pixel = input_image[r][c][chan];
       bits_out = pixel(31,0);
       nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
@@ -97,8 +97,7 @@ int main(int argc, char **argv) {
 
   // Receive data from accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
-    FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-
+    FOR_PIXELS(r, c, chan, OUT_DIM, OUT_DIM) {
       nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
       assert(nbytes == sizeof(bits_out));
 
@@ -115,7 +114,7 @@ int main(int argc, char **argv) {
   // Send data to accelerator
   for (int r = 0; r < REPS; r++) {
     for (int i = 0; i < TEST_SIZE; ++i) {
-      FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
+      FOR_PIXELS(r, c, chan, ORIG_DIM, ORIG_DIM) {
         pixel = input_image[r][c][chan];
         bits_out = pixel(31,0);
         nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
@@ -126,8 +125,7 @@ int main(int argc, char **argv) {
   // Receive data from the accelerator
   for (int r = 0; r < REPS; r++) {
     for (int i = 0; i < TEST_SIZE; ++i) {
-      FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-
+      FOR_PIXELS(r, c, chan, OUT_DIM, OUT_DIM) {
         nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
         assert(nbytes == sizeof(bits_out));
 

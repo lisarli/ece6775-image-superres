@@ -15,11 +15,12 @@ typedef ap_uint<2> bit2_t;
 typedef ap_uint<4> bit4_t;
 typedef ap_uint<32> bit32_t;
 
-typedef ap_fixed<20,2> pixel_type;
+typedef ap_fixed<32,2> pixel_type;
 
 const int SCALE_FACTOR = 2;
-const int ORIG_WIDTH = 20;
-const int ORIG_HEIGHT = 20;
+const int K_DIM = 5;
+const int ORIG_DIM = 20;
+const int OUT_DIM = ORIG_DIM*SCALE_FACTOR; // ORIG_DIM*SCALE_FACTOR-K_DIM+1; // FIXME: update for three conv
 
 #define FOR_PIXELS(r, c, chan, H, W) \
     for (int r = 0; r < H; ++r) \

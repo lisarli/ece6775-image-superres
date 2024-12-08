@@ -7,74 +7,88 @@
 #define LAYER_H
 
 #include "typedefs.h"
+#include <hls_stream.h>
+#include <hls_video.h>
 
-template <int H, int W, int S>
-void upsample(pixel_type input[H][W][3], pixel_type output[H * S][W * S][3])
+template <int D, int S>
+void upsample(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out)
 {
-  #pragma HLS array_partition variable=input complete dim=3
-  #pragma HLS array_partition variable=output complete dim=3
-  #pragma HLS array_partition variable=input cyclic factor=10 dim=2
-  #pragma HLS array_partition variable=output cyclic factor=10 dim=2
-  for (int r = 0; r < H*S; ++r){
-    #pragma HLS pipeline
-    for (int c = 0; c < W*S; ++c){
-      #pragma HLS unroll
-      for (int chan = 0; chan < 3; ++chan){
-        #pragma HLS unroll
-        output[r][c][chan] = input[r / S][c / S][chan];
-      }
+  pixel_type row[D];
+  for(int r = 0; r < D; r++){
+    for(int c = 0; c < D; c++){
+      row[c] = strm_in.read();
     }
-  }
-}
 
-template <int H, int W, int C>
-void initialize_memory(pixel_type input[H][W][3]) {
-  #pragma HLS array_partition variable=input complete dim=3
-  #pragma HLS array_partition variable=input cyclic factor=10 dim=2
-  for (int r = 0; r < ORIG_HEIGHT * SCALE_FACTOR; ++r){
-    #pragma HLS pipeline
-    for (int c = 0; c < ORIG_WIDTH * SCALE_FACTOR; ++c){
-      #pragma HLS unroll
-      for (int chan = 0; chan < 3; ++chan){
-      #pragma HLS unroll
-        input[r][c][chan] = C;
-      }
-    }
-  }
-}
-
-template <int H, int W, int KS>
-void convolve(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
-{
-  #pragma HLS array_partition variable=buffer complete dim=3
-  #pragma HLS array_partition variable=buffer cyclic factor=10 dim=2
-  #pragma HLS array_partition variable=kernel complete dim=0
-
-  pixel_type output[H][W][3];
-  initialize_memory<H,W,0>(output);
-  
-  for (int i = KS / 2; i < H - KS / 2; ++i) {
-    for (int j = KS / 2; j < W - KS / 2; ++j) {
-      #pragma HLS pipeline
-      for (int ki = -KS / 2; ki <= KS / 2; ++ki) {
-        #pragma HLS unroll
-        for (int kj = -KS / 2; kj <= KS / 2; ++kj) {
-          #pragma HLS unroll
-          output[i][j][0] += buffer[i + ki][j + kj][0] * kernel[ki + KS / 2][kj + KS / 2];
-          output[i][j][1] += buffer[i + ki][j + kj][1] * kernel[ki + KS / 2][kj + KS / 2];
-          output[i][j][2] += buffer[i + ki][j + kj][2] * kernel[ki + KS / 2][kj + KS / 2];
+    // replicate
+    for(int i = 0; i < S; i++){
+      for(int c = 0; c < D; c++){
+        for(int j = 0; j < S; j++){
+          strm_out.write(row[c]);
         }
       }
     }
   }
+}
 
-  for (int r = 0; r < H; ++r){
-    #pragma HLS pipeline
-    for (int c = 0; c < W; ++c){
-      #pragma HLS unroll
-      for (int chan = 0; chan < 3; ++chan){
-        #pragma HLS unroll
-        buffer[r][c][chan] = output[r][c][chan];
+template <int I, int O, int KS>
+void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out, const pixel_type kernel[KS][KS])
+{
+  hls::LineBuffer<KS, I, pixel_type> linebuf;
+  hls::Window<KS, KS, pixel_type> window;
+
+  // fill linebuf with first KS rows from input
+  INIT_LINEBUF:
+  for (int i = 0; i < KS; i++) {
+    for (int j = 0; j < I; j++) {
+      linebuf.shift_pixels_up(j);
+      linebuf.insert_bottom_row(strm_in.read(), j);
+    }
+  }
+
+  // fill window with KS pixels from linebuf
+  INIT_WINDOW:
+  for (int k1 = 0; k1 < KS; k1++) {
+    for (int k2 = 0; k2 < KS; k2++) {
+      window.insert_pixel(linebuf.getval(k1, k2), k1, k2);
+    }
+  }
+
+  CONV_ROW:
+  for (int i = 0; i < O; i++) {
+    CONV_COL:
+    for (int j = 0; j < O; j++) {
+      pixel_type acc = 0;
+      DOT_PRODUCT:
+      for (int k1 = 0; k1 < KS; k1++) {
+          for (int k2 = 0; k2 < KS; k2++) {
+              acc += window.getval(k1, k2) * kernel[k1][k2];
+          }
+      }
+      strm_out.write(acc);
+
+      // update window with the next column of pixels
+      if (j < O-1) {
+        window.shift_pixels_left();
+        for (int k1 = 0; k1 < KS; k1++) {
+          window.insert_pixel(linebuf.getval(k1, j+KS), k1, KS-1);
+        }
+      }
+    }
+
+    // update linebuf with the next row from input
+    if (i < O-1) {
+      UPDATE_LINEBUF:
+      for (int j = 0; j < I; j++) {
+        linebuf.shift_pixels_up(j);
+        linebuf.insert_bottom_row(strm_in.read(), j);
+      }
+    }
+    
+    // reload window
+    RELOAD_WINDOW:
+    for (int k1 = 0; k1 < KS; k1++) {
+      for (int k2 = 0; k2 < KS; k2++) {
+        window.insert_pixel(linebuf.getval(k1, k2), k1, k2);
       }
     }
   }
@@ -86,23 +100,6 @@ inline pixel_type min(pixel_type a, pixel_type b) {
 
 inline pixel_type max(pixel_type a, pixel_type b) {
   return a > b ? a : b;
-}
-
-template <int H, int W>
-void relu(pixel_type buffer[H][W][3]) {
-  #pragma HLS array_partition variable=buffer complete dim=3
-  #pragma HLS array_partition variable=buffer cyclic factor=10 dim=2
-
-  for (int r = 0; r < H; ++r){
-    #pragma HLS pipeline
-    for (int c = 0; c < W; ++c){
-      #pragma HLS unroll
-      for (int chan = 0; chan < 3; ++chan){
-        #pragma HLS unroll
-        buffer[r][c][chan] = min(1.0, max(0.0, buffer[r][c][chan]));
-      }
-    }
-  }
 }
 
 #endif
