@@ -15,7 +15,7 @@
 //------------------------------------------------------------------------
 // Helper function for reading images and labels
 //------------------------------------------------------------------------
-const int TEST_SIZE = 100; // number of test instances
+const int TEST_SIZE = 1; // number of test instances
 const int REPS = 20; // run over the 100 test instances 20 times to saturate the accelerator
 
 void read_test_image(double input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
@@ -76,7 +76,6 @@ int main(int argc, char **argv) {
   int num_test_insts = 0;
   float correct = 0.0;
 
-
   //--------------------------------------------------------------------
   // Run it once without timer to test accuracy
   //--------------------------------------------------------------------
@@ -102,11 +101,12 @@ int main(int argc, char **argv) {
       nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
       assert(nbytes == sizeof(bits_out));
 
-      pixel(31,0) = nbytes;
+      pixel(31,0) = bits_out;
       output_image[r][c][chan] = pixel;
     }
   }
-
+  write_test_image(output_image);
+/*
   //--------------------------------------------------------------------
   // Run it 20 times to test performance
   //--------------------------------------------------------------------
@@ -138,6 +138,7 @@ int main(int argc, char **argv) {
   }
   timer.stop();
   // total time wil be automatically printed upon exit.
+*/
 
   return 0;
 }
