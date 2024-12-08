@@ -20,7 +20,9 @@ typedef ap_fixed<32,2> pixel_type;
 const int SCALE_FACTOR = 2;
 const int K_DIM = 5;
 const int ORIG_DIM = 20;
-const int OUT_DIM = ORIG_DIM*SCALE_FACTOR; // ORIG_DIM*SCALE_FACTOR-K_DIM+1; // FIXME: update for three conv
+const int CONV_DIM0 = ORIG_DIM*SCALE_FACTOR-K_DIM+1;
+const int CONV_DIM1 = CONV_DIM0-K_DIM+1;
+const int OUT_DIM = CONV_DIM1-K_DIM+1;
 
 #define FOR_PIXELS(r, c, chan, H, W) \
     for (int r = 0; r < H; ++r) \
