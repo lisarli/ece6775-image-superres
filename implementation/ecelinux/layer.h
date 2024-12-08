@@ -44,7 +44,7 @@ void initialize_memory(pixel_type input[H][W][3]) {
 }
 
 template <int H, int W, int KS>
-void convolve(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
+void convolve_and_relu(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
 {
   #pragma HLS array_partition variable=buffer complete dim=3
   #pragma HLS array_partition variable=buffer cyclic factor=10 dim=2
@@ -74,7 +74,8 @@ void convolve(pixel_type buffer[H][W][3], const pixel_type kernel[KS][KS])
       #pragma HLS unroll
       for (int chan = 0; chan < 3; ++chan){
         #pragma HLS unroll
-        buffer[r][c][chan] = output[r][c][chan];
+        // does the relu on the output 
+        buffer[r][c][chan] = min(1.0, max(0.0, output[r][c][chan]));
       }
     }
   }
@@ -88,21 +89,21 @@ inline pixel_type max(pixel_type a, pixel_type b) {
   return a > b ? a : b;
 }
 
-template <int H, int W>
-void relu(pixel_type buffer[H][W][3]) {
-  #pragma HLS array_partition variable=buffer complete dim=3
-  #pragma HLS array_partition variable=buffer cyclic factor=10 dim=2
+// template <int H, int W>
+// void relu(pixel_type buffer[H][W][3]) {
+//   #pragma HLS array_partition variable=buffer complete dim=3
+//   #pragma HLS array_partition variable=buffer cyclic factor=10 dim=2
 
-  for (int r = 0; r < H; ++r){
-    #pragma HLS pipeline
-    for (int c = 0; c < W; ++c){
-      #pragma HLS unroll
-      for (int chan = 0; chan < 3; ++chan){
-        #pragma HLS unroll
-        buffer[r][c][chan] = min(1.0, max(0.0, buffer[r][c][chan]));
-      }
-    }
-  }
-}
+//   for (int r = 0; r < H; ++r){
+//     #pragma HLS pipeline
+//     for (int c = 0; c < W; ++c){
+//       #pragma HLS unroll
+//       for (int chan = 0; chan < 3; ++chan){
+//         #pragma HLS unroll
+//         buffer[r][c][chan] = min(1.0, max(0.0, buffer[r][c][chan]));
+//       }
+//     }
+//   }
+// }
 
 #endif
