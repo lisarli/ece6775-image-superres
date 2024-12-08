@@ -4,12 +4,6 @@
 // @brief: A convolution kernel for CNN on digit recognition
 
 #include "superres.h"
-#include "layer.h"
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-
-using namespace std;
 
 //----------------------------------------------------------
 // Top function

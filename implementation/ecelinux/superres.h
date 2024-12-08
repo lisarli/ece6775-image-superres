@@ -5,8 +5,12 @@
 
 #ifndef SUPERRES_H
 #define SUPERRES_H
-#include "typedefs.h"
-#include <hls_stream.h>
+#include "layer.h"
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
+using namespace std;
 
 // Top function for synthesis
 void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out);
