@@ -25,7 +25,7 @@ void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
 
   // superres each channel
   for(int i = 0; i < 3; i++){
-    superres_xcel(superres_in[i],superres_out[i]);
+    superres_xcel(superres_in[i], superres_out[i]);
   }
 
   // combine channel results to output stream
