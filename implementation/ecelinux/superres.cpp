@@ -68,13 +68,23 @@ void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type>
         {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
   };
   
+  hls::stream<pixel_type> upsample_in;
   hls::stream<pixel_type> upsample_out;
   hls::stream<pixel_type> layer0_out;
   hls::stream<pixel_type> layer1_out;
+  hls::stream<pixel_type> layer2_out;
+
+  for (int i = 0; i < ORIG_DIM * ORIG_DIM; ++i) {
+    upsample_in.write(input_image.read());
+  }
   
-  upsample<ORIG_DIM, SCALE_FACTOR>(input_image, upsample_out);
+  upsample<ORIG_DIM, SCALE_FACTOR>(upsample_in, upsample_out);
 
   convolve<ORIG_DIM*SCALE_FACTOR, CONV_DIM0, K_DIM>(upsample_out, layer0_out, EDGE_SHARPENING_KERNEL0);
   convolve<CONV_DIM0, CONV_DIM1, 5>(layer0_out, layer1_out, EDGE_SHARPENING_KERNEL1);
-  convolve<CONV_DIM1, OUT_DIM, 5>(layer1_out, output_image, EDGE_SHARPENING_KERNEL2);
+  convolve<CONV_DIM1, OUT_DIM, 5>(layer1_out, layer2_out, EDGE_SHARPENING_KERNEL2);
+
+  for (int i = 0; i < OUT_DIM * OUT_DIM; ++i) {
+    output_image.write(layer2_out.read());
+  }
 }
