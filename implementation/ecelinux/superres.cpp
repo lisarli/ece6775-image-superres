@@ -46,27 +46,31 @@ void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
 
 void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type> &output_image){
   #pragma HLS dataflow
-  pixel_type EDGE_SHARPENING_KERNEL0[5][5] = {
-        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
-        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
-        {-0.02344, -0.09375, 1.85980, -0.09375, -0.02344},
-        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
-        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
-  };
-  pixel_type EDGE_SHARPENING_KERNEL1[5][5] = {
-        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
-        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
-        {-0.02344, -0.09375, 1.85980, -0.09375, -0.02344},
-        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
-        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
-  };
-  pixel_type EDGE_SHARPENING_KERNEL2[5][5] = {
-        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
-        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
-        {-0.02344, -0.09375, 1.85980, -0.09375, -0.02344},
-        {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
-        {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
-  };
+  // pixel_type EDGE_SHARPENING_KERNEL0[5][5] = {
+  //       {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+  //       {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+  //       {-0.02344, -0.09375, 1.85980, -0.09375, -0.02344},
+  //       {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+  //       {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+  // };
+  // pixel_type EDGE_SHARPENING_KERNEL1[5][5] = {
+  //       {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+  //       {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+  //       {-0.02344, -0.09375, 1.85980, -0.09375, -0.02344},
+  //       {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+  //       {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+  // };
+  // pixel_type EDGE_SHARPENING_KERNEL2[5][5] = {
+  //       {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+  //       {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+  //       {-0.02344, -0.09375, 1.85980, -0.09375, -0.02344},
+  //       {-0.01563, -0.06250, -0.09375, -0.06250, -0.01563},
+  //       {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
+  // };
+
+  pixel_type EDGE_SHARPENING_KERNEL0[K_DIM][K_DIM] = {{0.5}};
+  pixel_type EDGE_SHARPENING_KERNEL1[K_DIM][K_DIM] = {{0.5}};
+  pixel_type EDGE_SHARPENING_KERNEL2[K_DIM][K_DIM] = {{0.5}};
   
   hls::stream<pixel_type> upsample_out;
   hls::stream<pixel_type> layer0_out;
@@ -75,6 +79,6 @@ void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type>
   upsample<ORIG_DIM, SCALE_FACTOR>(input_image, upsample_out);
 
   convolve<ORIG_DIM*SCALE_FACTOR, CONV_DIM0, K_DIM>(upsample_out, layer0_out, EDGE_SHARPENING_KERNEL0);
-  convolve<CONV_DIM0, CONV_DIM1, 5>(layer0_out, layer1_out, EDGE_SHARPENING_KERNEL1);
-  convolve<CONV_DIM1, OUT_DIM, 5>(layer1_out, output_image, EDGE_SHARPENING_KERNEL2);
+  convolve<CONV_DIM0, CONV_DIM1, K_DIM>(layer0_out, layer1_out, EDGE_SHARPENING_KERNEL1);
+  convolve<CONV_DIM1, OUT_DIM, K_DIM>(layer1_out, output_image, EDGE_SHARPENING_KERNEL2);
 }
