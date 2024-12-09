@@ -5,44 +5,57 @@
 
 #include "superres.h"
 
+
+// write rgb to individual streams
+void send_vals(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &superres_in0, hls::stream<pixel_type> &superres_in1, hls::stream<pixel_type> &superres_in2){
+  for(int r = 0; r < ORIG_DIM; r++){
+    for(int c = 0; c < ORIG_DIM; c++){
+      superres_in0.write(strm_in.read());
+      superres_in1.write(strm_in.read());
+      superres_in2.write(strm_in.read());
+    }
+  }
+}
+
+// combine channel results to output stream
+void write_vals(hls::stream<pixel_type> &strm_out, hls::stream<pixel_type> &superres_out0, hls::stream<pixel_type> &superres_out1, hls::stream<pixel_type> &superres_out2){
+  for(int r = 0; r < OUT_DIM; r++){
+    for(int c = 0; c < OUT_DIM; c++){
+      strm_out.write(superres_out0.read());
+      strm_out.write(superres_out1.read());
+      strm_out.write(superres_out2.read());
+    }
+  }
+}
+
 //----------------------------------------------------------
 // Top function
 //----------------------------------------------------------
 
 void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
   #pragma HLS dataflow
-  hls::stream<pixel_type> superres_in[3];
-  hls::stream<pixel_type> superres_out[3];
+  hls::stream<pixel_type> superres_in0;
+  hls::stream<pixel_type> superres_in1;
+  hls::stream<pixel_type> superres_in2;
+  hls::stream<pixel_type> superres_out0;
+  hls::stream<pixel_type> superres_out1;
+  hls::stream<pixel_type> superres_out2;
 
-  #pragma HLS stream variable=superres_in[0] depth=800
-  #pragma HLS stream variable=superres_out[0] depth=800
-  #pragma HLS stream variable=superres_in[1] depth=800
-  #pragma HLS stream variable=superres_out[1] depth=800
-  #pragma HLS stream variable=superres_in[2] depth=800
-  #pragma HLS stream variable=superres_out[2] depth=800
+  #pragma HLS stream variable=superres_in0 depth=64
+  #pragma HLS stream variable=superres_out0 depth=64
+  #pragma HLS stream variable=superres_in1 depth=64
+  #pragma HLS stream variable=superres_out1 depth=64
+  #pragma HLS stream variable=superres_in2 depth=64
+  #pragma HLS stream variable=superres_out2 depth=64
 
-  // write rgb to individual streams
-  for(int r = 0; r < ORIG_DIM; r++){
-    for(int c = 0; c < ORIG_DIM; c++){
-      for(int i = 0; i < 3; i++){
-        superres_in[i].write(strm_in.read());
-      }
-    }
-  }
+  send_vals(strm_in, superres_in0, superres_in1, superres_in2);
 
   // superres each channel
-  for(int i = 0; i < 3; i++){
-    superres_xcel(superres_in[i], superres_out[i]);
-  }
+  superres_xcel(superres_in0, superres_out0);
+  superres_xcel(superres_in1, superres_out1);
+  superres_xcel(superres_in2, superres_out2);
 
-  // combine channel results to output stream
-  for(int r = 0; r < OUT_DIM; r++){
-    for(int c = 0; c < OUT_DIM; c++){
-      for(int i = 0; i < 3; i++){
-        strm_out.write(superres_out[i].read());
-      }
-    }
-  }
+  write_vals(strm_out, superres_out0, superres_out1, superres_out2);
 }
 
 //----------------------------------------------------------
@@ -79,9 +92,9 @@ void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type>
   hls::stream<pixel_type> layer0_out;
   hls::stream<pixel_type> layer1_out;
   
-  #pragma HLS stream variable=upsample_out depth=800
-  #pragma HLS stream variable=layer0_out depth=800
-  #pragma HLS stream variable=layer1_out depth=800
+  #pragma HLS stream variable=upsample_out depth=64
+  #pragma HLS stream variable=layer0_out depth=64
+  #pragma HLS stream variable=layer1_out depth=64
 
   upsample<ORIG_DIM, SCALE_FACTOR>(input_image, upsample_out);
 
