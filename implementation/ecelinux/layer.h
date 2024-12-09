@@ -8,7 +8,6 @@
 
 #include "typedefs.h"
 #include <hls_stream.h>
-#include <hls_video.h>
 
 template <int D, int S>
 void upsample(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out)
@@ -33,15 +32,16 @@ void upsample(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
 template <int I, int O, int KS>
 void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out, const pixel_type kernel[KS][KS])
 {
-  hls::LineBuffer<KS, I, pixel_type> linebuf;
-  hls::Window<KS, KS, pixel_type> window;
+  pixel_type linebuf[KS][I];
+  #pragma HLS array_partition variable=linebuf dim=1 complete
+  pixel_type window[KS][KS];
+  #pragma HLS array_partition variable=window dim=0 complete
 
   // fill linebuf with first KS rows from input
   INIT_LINEBUF:
   for (int i = 0; i < KS; i++) {
     for (int j = 0; j < I; j++) {
-      linebuf.shift_pixels_up(j);
-      linebuf.insert_bottom_row(strm_in.read(), j);
+      linebuf[i][j] = strm_in.read();
     }
   }
 
@@ -49,7 +49,7 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
   INIT_WINDOW:
   for (int k1 = 0; k1 < KS; k1++) {
     for (int k2 = 0; k2 < KS; k2++) {
-      window.insert_pixel(linebuf.getval(k1, k2), k1, k2);
+      window[k1][k2] = linebuf[k1][k2];
     }
   }
 
@@ -61,16 +61,22 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
       DOT_PRODUCT:
       for (int k1 = 0; k1 < KS; k1++) {
           for (int k2 = 0; k2 < KS; k2++) {
-              acc += window.getval(k1, k2) * kernel[k1][k2];
+              acc += window[k1][k2] * kernel[k1][k2];
           }
       }
       strm_out.write(acc);
 
       // update window with the next column of pixels
       if (j < O-1) {
-        window.shift_pixels_left();
+        // shift window pixels left
+        for(int k1 = 0; k1 < KS; k1++){
+          for(int k2 = 0; k2 < KS-1; k2++){
+            window[k1][k2] = window[k1][k2+1];
+          }
+        }
+        // get last col
         for (int k1 = 0; k1 < KS; k1++) {
-          window.insert_pixel(linebuf.getval(k1, j+KS), k1, KS-1);
+          window[k1][KS-1] = linebuf[k1][j+KS];
         }
       }
     }
@@ -78,9 +84,14 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
     // update linebuf with the next row from input
     if (i < O-1) {
       UPDATE_LINEBUF:
+      // shift linebuf pixels up
+      for(int k1 = 0; k1 < KS-1; k1++){
+        for(int k2 = 0; k2 < I; k2++){
+          linebuf[k1][k2] = linebuf[k1+1][k2];
+        }
+      }
       for (int j = 0; j < I; j++) {
-        linebuf.shift_pixels_up(j);
-        linebuf.insert_bottom_row(strm_in.read(), j);
+        linebuf[KS-1][j] = strm_in.read();
       }
     }
     
@@ -88,7 +99,7 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
     RELOAD_WINDOW:
     for (int k1 = 0; k1 < KS; k1++) {
       for (int k2 = 0; k2 < KS; k2++) {
-        window.insert_pixel(linebuf.getval(k1, k2), k1, k2);
+        window[k1][k2] = linebuf[k1][k2];
       }
     }
   }
