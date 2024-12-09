@@ -14,12 +14,12 @@ void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
   hls::stream<pixel_type> superres_in[3];
   hls::stream<pixel_type> superres_out[3];
 
-  #pragma HLS stream variable=superres_in[0] depth=64
-  #pragma HLS stream variable=superres_out[0] depth=64
-  #pragma HLS stream variable=superres_in[1] depth=64
-  #pragma HLS stream variable=superres_out[1] depth=64
-  #pragma HLS stream variable=superres_in[2] depth=64
-  #pragma HLS stream variable=superres_out[2] depth=64
+  #pragma HLS stream variable=superres_in[0] depth=400
+  #pragma HLS stream variable=superres_out[0] depth=400
+  #pragma HLS stream variable=superres_in[1] depth=400
+  #pragma HLS stream variable=superres_out[1] depth=400
+  #pragma HLS stream variable=superres_in[2] depth=400
+  #pragma HLS stream variable=superres_out[2] depth=400
 
   // write rgb to individual streams
   for(int r = 0; r < ORIG_DIM; r++){
@@ -75,22 +75,17 @@ void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type>
         {-0.00391, -0.01563, -0.02344, -0.0156, -0.00391},
   };
   
-  hls::stream<pixel_type> upsample_in;
   hls::stream<pixel_type> upsample_out;
   hls::stream<pixel_type> layer0_out;
   hls::stream<pixel_type> layer1_out;
   
-  #pragma HLS stream variable=upsample_out depth=64
-  #pragma HLS stream variable=layer0_out depth=64
-  #pragma HLS stream variable=layer1_out depth=64
+  #pragma HLS stream variable=upsample_out depth=400
+  #pragma HLS stream variable=layer0_out depth=400
+  #pragma HLS stream variable=layer1_out depth=400
 
   upsample<ORIG_DIM, SCALE_FACTOR>(input_image, upsample_out);
 
   convolve<ORIG_DIM*SCALE_FACTOR, CONV_DIM0, K_DIM>(upsample_out, layer0_out, EDGE_SHARPENING_KERNEL0);
-  convolve<CONV_DIM0, CONV_DIM1, 5>(layer0_out, layer1_out, EDGE_SHARPENING_KERNEL1);
-  convolve<CONV_DIM1, OUT_DIM, 5>(layer1_out, layer2_out, EDGE_SHARPENING_KERNEL2);
-
-  for (int i = 0; i < OUT_DIM * OUT_DIM; ++i) {
-    output_image.write(layer2_out.read());
-  }
+  convolve<CONV_DIM0, CONV_DIM1, K_DIM>(layer0_out, layer1_out, EDGE_SHARPENING_KERNEL1);
+  convolve<CONV_DIM1, OUT_DIM, K_DIM>(layer1_out, output_image, EDGE_SHARPENING_KERNEL2);
 }
