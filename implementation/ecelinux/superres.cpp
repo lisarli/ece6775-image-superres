@@ -14,6 +14,13 @@ void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
   hls::stream<pixel_type> superres_in[3];
   hls::stream<pixel_type> superres_out[3];
 
+  #pragma HLS stream variable=superres_in[0] depth=64
+  #pragma HLS stream variable=superres_out[0] depth=64
+  #pragma HLS stream variable=superres_in[1] depth=64
+  #pragma HLS stream variable=superres_out[1] depth=64
+  #pragma HLS stream variable=superres_in[2] depth=64
+  #pragma HLS stream variable=superres_out[2] depth=64
+
   // write rgb to individual streams
   for(int r = 0; r < ORIG_DIM; r++){
     for(int c = 0; c < ORIG_DIM; c++){
@@ -72,13 +79,12 @@ void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type>
   hls::stream<pixel_type> upsample_out;
   hls::stream<pixel_type> layer0_out;
   hls::stream<pixel_type> layer1_out;
-  hls::stream<pixel_type> layer2_out;
-
-  for (int i = 0; i < ORIG_DIM * ORIG_DIM; ++i) {
-    upsample_in.write(input_image.read());
-  }
   
-  upsample<ORIG_DIM, SCALE_FACTOR>(upsample_in, upsample_out);
+  #pragma HLS stream variable=upsample_out depth=64
+  #pragma HLS stream variable=layer0_out depth=64
+  #pragma HLS stream variable=layer1_out depth=64
+
+  upsample<ORIG_DIM, SCALE_FACTOR>(input_image, upsample_out);
 
   convolve<ORIG_DIM*SCALE_FACTOR, CONV_DIM0, K_DIM>(upsample_out, layer0_out, EDGE_SHARPENING_KERNEL0);
   convolve<CONV_DIM0, CONV_DIM1, 5>(layer0_out, layer1_out, EDGE_SHARPENING_KERNEL1);
