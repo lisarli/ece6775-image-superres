@@ -14,6 +14,13 @@ void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
   hls::stream<pixel_type> superres_in[3];
   hls::stream<pixel_type> superres_out[3];
 
+  #pragma HLS stream variable=superres_in[0] depth=64
+  #pragma HLS stream variable=superres_out[0] depth=64
+  #pragma HLS stream variable=superres_in[1] depth=64
+  #pragma HLS stream variable=superres_out[1] depth=64
+  #pragma HLS stream variable=superres_in[2] depth=64
+  #pragma HLS stream variable=superres_out[2] depth=64
+
   // write rgb to individual streams
   for(int r = 0; r < ORIG_DIM; r++){
     for(int c = 0; c < ORIG_DIM; c++){
@@ -75,6 +82,10 @@ void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type>
   hls::stream<pixel_type> upsample_out;
   hls::stream<pixel_type> layer0_out;
   hls::stream<pixel_type> layer1_out;
+
+  #pragma HLS stream variable=upsample_out depth=64
+  #pragma HLS stream variable=layer0_out depth=64
+  #pragma HLS stream variable=layer1_out depth=64
   
   upsample<ORIG_DIM, SCALE_FACTOR>(input_image, upsample_out);
 
