@@ -94,13 +94,17 @@ int main(int argc, char **argv) {
     }
   }
 
+  std::cout << "sent to accel" << std::endl;
+
   // Receive data from accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
     FOR_PIXELS(r, c, chan, OUT_DIM, OUT_DIM) {
+      std::cout << "waiting for pixel: " << r << c << chan << std::endl;
       nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
       assert(nbytes == sizeof(bits_out));
 
       pixel(31,0) = bits_out;
+      std::cout << "\tgot: " << pixel << std::endl;
       output_image[r][c][chan] = pixel;
     }
   }
