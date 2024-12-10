@@ -102,8 +102,8 @@ int main(int argc, char **argv) {
 
 
     while (pixels_in < ORIG_DIM * ORIG_DIM) {
-      // pull out 1 post-conv row
-      for (int j = 0; j < OUT_DIM; ++j) {
+      // pull out 2 post-conv rows
+      for (int j = 0; j < OUT_DIM * 2; ++j) {
         int r = pixels_out / OUT_DIM, c = pixels_out % OUT_DIM;
         for (int chan = 0; chan < 3; ++chan) {
           nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
@@ -128,8 +128,8 @@ int main(int argc, char **argv) {
       }
     }
 
-    // pull out last output row
-    for (int j = 0; j < OUT_DIM; ++j) {
+    // pull out last 2 output rows
+    for (int j = 0; j < OUT_DIM * 2; ++j) {
       int r = pixels_out / OUT_DIM, c = pixels_out % OUT_DIM;
       for (int chan = 0; chan < 3; ++chan) {
         nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
