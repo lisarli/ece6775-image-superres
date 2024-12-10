@@ -41,12 +41,12 @@ void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
   hls::stream<pixel_type> superres_out1;
   hls::stream<pixel_type> superres_out2;
 
-  #pragma HLS stream variable=superres_in0 depth=64
-  #pragma HLS stream variable=superres_out0 depth=64
-  #pragma HLS stream variable=superres_in1 depth=64
-  #pragma HLS stream variable=superres_out1 depth=64
-  #pragma HLS stream variable=superres_in2 depth=64
-  #pragma HLS stream variable=superres_out2 depth=64
+  #pragma HLS stream variable=superres_in0 depth=80 // should be 4 * ORIG_DIM?
+  #pragma HLS stream variable=superres_out0 depth=80
+  #pragma HLS stream variable=superres_in1 depth=80
+  #pragma HLS stream variable=superres_out1 depth=80
+  #pragma HLS stream variable=superres_in2 depth=80
+  #pragma HLS stream variable=superres_out2 depth=80
 
   send_vals(strm_in, superres_in0, superres_in1, superres_in2);
 
@@ -92,9 +92,9 @@ void superres_xcel(hls::stream<pixel_type> &input_image, hls::stream<pixel_type>
   hls::stream<pixel_type> layer0_out;
   hls::stream<pixel_type> layer1_out;
   
-  #pragma HLS stream variable=upsample_out depth=64
-  #pragma HLS stream variable=layer0_out depth=64
-  #pragma HLS stream variable=layer1_out depth=64
+  #pragma HLS stream variable=upsample_out depth=80
+  #pragma HLS stream variable=layer0_out depth=80
+  #pragma HLS stream variable=layer1_out depth=80
 
   upsample<ORIG_DIM, SCALE_FACTOR>(input_image, upsample_out);
 

@@ -14,7 +14,7 @@
 //------------------------------------------------------------------------
 // Helper function for reading images and labels
 //------------------------------------------------------------------------
-const int TEST_SIZE = 1; // number of test instances
+const int TEST_SIZE = 20; // number of test instances
 const int REPS = 20; // run over the 100 test instances 20 times to saturate the accelerator
 
 void read_test_image(double input_image[ORIG_DIM][ORIG_DIM][3]) {
