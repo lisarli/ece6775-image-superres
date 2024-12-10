@@ -131,13 +131,14 @@ int main(int argc, char **argv) {
         nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
         assert(nbytes == sizeof(bits_out));
 
-        pixel(31,0) = nbytes;
+        pixel(31,0) = bits_out;
         output_image[r][c][chan] = pixel;
       }
     }
   }
   timer.stop();
   // total time wil be automatically printed upon exit.
+  write_test_image(output_image);
 
   return 0;
 }
