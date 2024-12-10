@@ -41,12 +41,12 @@ void dut(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out){
   hls::stream<pixel_type> superres_out1;
   hls::stream<pixel_type> superres_out2;
 
-  #pragma HLS stream variable=superres_in0 depth=64
-  #pragma HLS stream variable=superres_out0 depth=64
-  #pragma HLS stream variable=superres_in1 depth=64
-  #pragma HLS stream variable=superres_out1 depth=64
-  #pragma HLS stream variable=superres_in2 depth=64
-  #pragma HLS stream variable=superres_out2 depth=64
+  #pragma HLS stream variable=superres_in0 depth=410
+  #pragma HLS stream variable=superres_out0 depth=800
+  #pragma HLS stream variable=superres_in1 depth=410
+  #pragma HLS stream variable=superres_out1 depth=800
+  #pragma HLS stream variable=superres_in2 depth=410
+  #pragma HLS stream variable=superres_out2 depth=800
 
   send_vals(strm_in, superres_in0, superres_in1, superres_in2);
 
