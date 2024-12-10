@@ -84,26 +84,64 @@ int main(int argc, char **argv) {
   pixel_type pixel;
   bit32_t bits_out;
 
+  int pixels_in, pixels_out;
+
   // Send data to accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
-    FOR_PIXELS(r, c, chan, ORIG_DIM, ORIG_DIM) {
-      pixel = input_image[r][c][chan];
-      bits_out = pixel(31,0);
-      nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
-      assert(nbytes == sizeof(bits_out));
+    // pass in 4 input rows => 8 upscaled => 2 post-conv
+    for (int j = 0; j < ORIG_DIM * 4; ++j) {
+      int r = pixels_in / ORIG_DIM, c = pixels_in % ORIG_DIM;
+      for (int chan = 0; chan < 3; ++chan) {
+        pixel = input_image[r][c][chan];
+        bits_out = pixel(31,0);
+        nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
+        assert(nbytes == sizeof(bits_out));
+      }
+      ++pixels_in;
+    }
+
+
+    while (pixels_in < ORIG_DIM * ORIG_DIM) {
+      // pull out 1 post-conv row
+      for (int j = 0; j < OUT_DIM; ++j) {
+        int r = pixels_out / OUT_DIM, c = pixels_out % OUT_DIM;
+        for (int chan = 0; chan < 3; ++chan) {
+          nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
+          assert(nbytes == sizeof(bits_out));
+
+          pixel(31,0) = bits_out;
+          output_image[r][c][chan] = pixel;
+        }
+        ++pixels_out;
+      }
+
+      // push in 1 input row
+      for (int j = 0; j < ORIG_DIM; ++j) {
+        int r = pixels_in / ORIG_DIM, c = pixels_in % ORIG_DIM;
+        for (int chan = 0; chan < 3; ++chan) {
+          pixel = input_image[r][c][chan];
+          bits_out = pixel(31,0);
+          nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
+          assert(nbytes == sizeof(bits_out));
+        }
+        ++pixels_in;
+      }
+    }
+
+    // pull out last output row
+    for (int j = 0; j < OUT_DIM; ++j) {
+      int r = pixels_out / OUT_DIM, c = pixels_out % OUT_DIM;
+      for (int chan = 0; chan < 3; ++chan) {
+        nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
+        assert(nbytes == sizeof(bits_out));
+
+        pixel(31,0) = bits_out;
+        output_image[r][c][chan] = pixel;
+      }
+      ++pixels_out;
     }
   }
 
-  // Receive data from accelerator
-  for (int i = 0; i < TEST_SIZE; ++i) {
-    FOR_PIXELS(r, c, chan, OUT_DIM, OUT_DIM) {
-      nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
-      assert(nbytes == sizeof(bits_out));
-
-      pixel(31,0) = bits_out;
-      output_image[r][c][chan] = pixel;
-    }
-  }
   write_test_image(output_image);
 /*
   //--------------------------------------------------------------------
