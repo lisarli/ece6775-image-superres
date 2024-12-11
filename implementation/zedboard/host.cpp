@@ -15,7 +15,7 @@
 //------------------------------------------------------------------------
 // Helper function for reading images and labels
 //------------------------------------------------------------------------
-const int TEST_SIZE = 100; // number of test instances
+const int TEST_SIZE = 1; // number of test instances
 const int REPS = 20; // run over the 100 test instances 20 times to saturate the accelerator
 
 void read_test_image(double input_image[ORIG_HEIGHT][ORIG_WIDTH][3]) {
@@ -76,20 +76,19 @@ int main(int argc, char **argv) {
   int num_test_insts = 0;
   float correct = 0.0;
 
-
   //--------------------------------------------------------------------
   // Run it once without timer to test accuracy
   //--------------------------------------------------------------------
   std::cout << "Running Image Superres on Zedboard" << std::endl;
 
-  pixel_type pixel;
   bit32_t bits_out;
+  union { float fval; int ival; } u;
 
   // Send data to accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
     FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
-      pixel = input_image[r][c][chan];
-      bits_out = pixel(31,0);
+      u.fval = input_image[r][c][chan];
+      bits_out = u.ival;
       nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
       assert(nbytes == sizeof(bits_out));
     }
@@ -98,14 +97,14 @@ int main(int argc, char **argv) {
   // Receive data from accelerator
   for (int i = 0; i < TEST_SIZE; ++i) {
     FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-
       nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
       assert(nbytes == sizeof(bits_out));
-
-      pixel(31,0) = nbytes;
-      output_image[r][c][chan] = pixel;
+      u.ival = bits_out;
+      output_image[r][c][chan] = u.fval;
     }
   }
+  write_test_image(output_image);
+
 
   //--------------------------------------------------------------------
   // Run it 20 times to test performance
@@ -116,8 +115,8 @@ int main(int argc, char **argv) {
   for (int r = 0; r < REPS; r++) {
     for (int i = 0; i < TEST_SIZE; ++i) {
       FOR_PIXELS(r, c, chan, ORIG_HEIGHT, ORIG_WIDTH) {
-        pixel = input_image[r][c][chan];
-        bits_out = pixel(31,0);
+        u.fval = input_image[r][c][chan];
+        bits_out = u.ival;
         nbytes = write(fdw, (void *)&bits_out, sizeof(bits_out));
         assert(nbytes == sizeof(bits_out));
       }
@@ -127,12 +126,10 @@ int main(int argc, char **argv) {
   for (int r = 0; r < REPS; r++) {
     for (int i = 0; i < TEST_SIZE; ++i) {
       FOR_PIXELS(r, c, chan, ORIG_HEIGHT * SCALE_FACTOR, ORIG_WIDTH * SCALE_FACTOR) {
-
         nbytes = read(fdr, (void *)&bits_out, sizeof(bits_out));
         assert(nbytes == sizeof(bits_out));
-
-        pixel(31,0) = nbytes;
-        output_image[r][c][chan] = pixel;
+        u.ival = bits_out;
+        output_image[r][c][chan] = u.fval;
       }
     }
   }
