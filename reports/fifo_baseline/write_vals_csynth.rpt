@@ -1,0 +1,161 @@
+
+
+================================================================
+== Vivado HLS Report for 'write_vals'
+================================================================
+* Date:           Wed Dec 11 18:19:22 2024
+
+* Version:        2019.2 (Build 2704478 on Wed Nov 06 22:10:23 MST 2019)
+* Project:        superres.prj
+* Solution:       solution1
+* Product family: zynq
+* Target device:  xc7z020-clg484-1
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+----------+----------+------------+
+    |  Clock |  Target  | Estimated| Uncertainty|
+    +--------+----------+----------+------------+
+    |ap_clk  | 10.00 ns | 7.268 ns |   1.25 ns  |
+    +--------+----------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+--------+--------+---------+
+    |  Latency (cycles) |  Latency (absolute) |     Interval    | Pipeline|
+    |   min   |   max   |    min   |    max   |   min  |   max  |   Type  |
+    +---------+---------+----------+----------+--------+--------+---------+
+    |   106409|   106409| 1.064 ms | 1.064 ms |  106409|  106409|   none  |
+    +---------+---------+----------+----------+--------+--------+---------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        +-------------+---------+---------+----------+-----------+-----------+------+----------+
+        |             |  Latency (cycles) | Iteration|  Initiation Interval  | Trip |          |
+        |  Loop Name  |   min   |   max   |  Latency |  achieved |   target  | Count| Pipelined|
+        +-------------+---------+---------+----------+-----------+-----------+------+----------+
+        |- Loop 1     |   106408|   106408|       566|          -|          -|   188|    no    |
+        | + Loop 1.1  |      564|      564|         3|          -|          -|   188|    no    |
+        +-------------+---------+---------+----------+-----------+-----------+------+----------+
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-------+--------+-------+-----+
+|       Name      | BRAM_18K| DSP48E|   FF   |  LUT  | URAM|
++-----------------+---------+-------+--------+-------+-----+
+|DSP              |        -|      -|       -|      -|    -|
+|Expression       |        -|      -|       0|     56|    -|
+|FIFO             |        -|      -|       -|      -|    -|
+|Instance         |        -|      -|       -|      -|    -|
+|Memory           |        -|      -|       -|      -|    -|
+|Multiplexer      |        -|      -|       -|    117|    -|
+|Register         |        -|      -|     102|      -|    -|
++-----------------+---------+-------+--------+-------+-----+
+|Total            |        0|      0|     102|    173|    0|
++-----------------+---------+-------+--------+-------+-----+
+|Available        |      280|    220|  106400|  53200|    0|
++-----------------+---------+-------+--------+-------+-----+
+|Utilization (%)  |        0|      0|   ~0   |   ~0  |    0|
++-----------------+---------+-------+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    N/A
+
+    * DSP48E: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +--------------------+----------+-------+---+----+------------+------------+
+    |    Variable Name   | Operation| DSP48E| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +--------------------+----------+-------+---+----+------------+------------+
+    |c_fu_100_p2         |     +    |      0|  0|  15|           8|           1|
+    |r_fu_88_p2          |     +    |      0|  0|  15|           8|           1|
+    |icmp_ln22_fu_82_p2  |   icmp   |      0|  0|  11|           8|           8|
+    |icmp_ln23_fu_94_p2  |   icmp   |      0|  0|  11|           8|           8|
+    |ap_block_state1     |    or    |      0|  0|   2|           1|           1|
+    |ap_block_state3     |    or    |      0|  0|   2|           1|           1|
+    +--------------------+----------+-------+---+----+------------+------------+
+    |Total               |          |      0|  0|  56|          34|          20|
+    +--------------------+----------+-------+---+----+------------+------------+
+
+    * Multiplexer: 
+    +-------------------------+----+-----------+-----+-----------+
+    |           Name          | LUT| Input Size| Bits| Total Bits|
+    +-------------------------+----+-----------+-----+-----------+
+    |ap_NS_fsm                |  33|          6|    1|          6|
+    |ap_done                  |   9|          2|    1|          2|
+    |c_0_reg_71               |   9|          2|    8|         16|
+    |r_0_reg_60               |   9|          2|    8|         16|
+    |strm_out_V_V_blk_n       |   9|          2|    1|          2|
+    |strm_out_V_V_din         |  21|          4|   32|        128|
+    |superres_out0_V_V_blk_n  |   9|          2|    1|          2|
+    |superres_out1_V_V_blk_n  |   9|          2|    1|          2|
+    |superres_out2_V_V_blk_n  |   9|          2|    1|          2|
+    +-------------------------+----+-----------+-----+-----------+
+    |Total                    | 117|         24|   54|        176|
+    +-------------------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +-----------------+----+----+-----+-----------+
+    |       Name      | FF | LUT| Bits| Const Bits|
+    +-----------------+----+----+-----+-----------+
+    |ap_CS_fsm        |   5|   0|    5|          0|
+    |ap_done_reg      |   1|   0|    1|          0|
+    |c_0_reg_71       |   8|   0|    8|          0|
+    |c_reg_117        |   8|   0|    8|          0|
+    |r_0_reg_60       |   8|   0|    8|          0|
+    |r_reg_109        |   8|   0|    8|          0|
+    |tmp_V_1_reg_122  |  32|   0|   32|          0|
+    |tmp_V_2_reg_127  |  32|   0|   32|          0|
+    +-----------------+----+----+-----+-----------+
+    |Total            | 102|   0|  102|          0|
+    +-----------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++---------------------------+-----+-----+------------+-------------------+--------------+
+|         RTL Ports         | Dir | Bits|  Protocol  |   Source Object   |    C Type    |
++---------------------------+-----+-----+------------+-------------------+--------------+
+|ap_clk                     |  in |    1| ap_ctrl_hs |     write_vals    | return value |
+|ap_rst                     |  in |    1| ap_ctrl_hs |     write_vals    | return value |
+|ap_start                   |  in |    1| ap_ctrl_hs |     write_vals    | return value |
+|ap_done                    | out |    1| ap_ctrl_hs |     write_vals    | return value |
+|ap_continue                |  in |    1| ap_ctrl_hs |     write_vals    | return value |
+|ap_idle                    | out |    1| ap_ctrl_hs |     write_vals    | return value |
+|ap_ready                   | out |    1| ap_ctrl_hs |     write_vals    | return value |
+|strm_out_V_V_din           | out |   32|   ap_fifo  |    strm_out_V_V   |    pointer   |
+|strm_out_V_V_full_n        |  in |    1|   ap_fifo  |    strm_out_V_V   |    pointer   |
+|strm_out_V_V_write         | out |    1|   ap_fifo  |    strm_out_V_V   |    pointer   |
+|superres_out0_V_V_dout     |  in |   32|   ap_fifo  | superres_out0_V_V |    pointer   |
+|superres_out0_V_V_empty_n  |  in |    1|   ap_fifo  | superres_out0_V_V |    pointer   |
+|superres_out0_V_V_read     | out |    1|   ap_fifo  | superres_out0_V_V |    pointer   |
+|superres_out1_V_V_dout     |  in |   32|   ap_fifo  | superres_out1_V_V |    pointer   |
+|superres_out1_V_V_empty_n  |  in |    1|   ap_fifo  | superres_out1_V_V |    pointer   |
+|superres_out1_V_V_read     | out |    1|   ap_fifo  | superres_out1_V_V |    pointer   |
+|superres_out2_V_V_dout     |  in |   32|   ap_fifo  | superres_out2_V_V |    pointer   |
+|superres_out2_V_V_empty_n  |  in |    1|   ap_fifo  | superres_out2_V_V |    pointer   |
+|superres_out2_V_V_read     | out |    1|   ap_fifo  | superres_out2_V_V |    pointer   |
++---------------------------+-----+-----+------------+-------------------+--------------+
+
