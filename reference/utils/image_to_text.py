@@ -8,9 +8,7 @@ def image_to_text(input_image_path, output_file_path):
 
         width, height = img.size
 
-        with open(output_file_path, 'w') as f:
-            f.write(f"{width} {height}\n")
-            
+        with open(output_file_path, 'w') as f:            
             for y in range(height):
                 for x in range(width):
                     r, g, b = img.getpixel((x, y))
