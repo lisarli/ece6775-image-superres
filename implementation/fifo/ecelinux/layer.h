@@ -29,6 +29,14 @@ void upsample(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
   }
 }
 
+inline pixel_type min(pixel_type a, pixel_type b) {
+  return a < b ? a : b;
+}
+
+inline pixel_type max(pixel_type a, pixel_type b) {
+  return a > b ? a : b;
+}
+
 template <int I, int O, int KS>
 void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_out, const pixel_type kernel[KS][KS])
 {
@@ -65,7 +73,7 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
               acc += window[k1][k2] * kernel[k1][k2];
           }
       }
-      strm_out.write(acc);
+      strm_out.write(max(0.0,min(1.0,acc)));
 
       // update window with the next column of pixels
       if (j < O-1) {
@@ -107,14 +115,6 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
       }
     }
   }
-}
-
-inline pixel_type min(pixel_type a, pixel_type b) {
-  return a < b ? a : b;
-}
-
-inline pixel_type max(pixel_type a, pixel_type b) {
-  return a > b ? a : b;
 }
 
 #endif
