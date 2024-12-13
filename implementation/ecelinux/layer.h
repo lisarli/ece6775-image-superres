@@ -60,6 +60,7 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
       pixel_type acc = 0;
       DOT_PRODUCT:
       for (int k1 = 0; k1 < KS; k1++) {
+          #pragma HLS pipeline
           for (int k2 = 0; k2 < KS; k2++) {
               acc += window[k1][k2] * kernel[k1][k2];
           }
@@ -70,12 +71,14 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
       if (j < O-1) {
         // shift window pixels left
         for(int k1 = 0; k1 < KS; k1++){
+          #pragma HLS pipeline
           for(int k2 = 0; k2 < KS-1; k2++){
             window[k1][k2] = window[k1][k2+1];
           }
         }
         // get last col
         for (int k1 = 0; k1 < KS; k1++) {
+          #pragma HLS unroll
           window[k1][KS-1] = linebuf[k1][j+KS];
         }
       }
@@ -99,6 +102,7 @@ void convolve(hls::stream<pixel_type> &strm_in, hls::stream<pixel_type> &strm_ou
     RELOAD_WINDOW:
     for (int k1 = 0; k1 < KS; k1++) {
       for (int k2 = 0; k2 < KS; k2++) {
+        #pragma HLS pipeline
         window[k1][k2] = linebuf[k1][k2];
       }
     }
