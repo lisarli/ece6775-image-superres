@@ -13,4 +13,7 @@ To run the design on the Zedboard, run `vivado_hls -f run.tcl` from the `ecelinu
 ## Viewing Output
 The output of the superresolution can be viewed by running `reference/utils/visualize/py`. This script takes paths to a blurry input image and the superresolved output image to display the images side-by-side.
 
+## Baseline Designs
+The baseline 20x20 accelerator design can be found in the branch `use-float`, and the baseline 100x100 streaming accelerator design can be found in `fifo-base`. These designs can be run similarly using the steps above. HLS reports for each design can also be found in the `reports` directory.
+
 Link to Repo: [https://github.com/lisarli/ece6775-image-superres](https://github.com/lisarli/ece6775-image-superres)
