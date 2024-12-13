@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
     }
   }
   write_test_image(output_image);
-/*
+
   //--------------------------------------------------------------------
   // Run it 20 times to test performance
   //--------------------------------------------------------------------
@@ -136,6 +136,6 @@ int main(int argc, char **argv) {
   }
   timer.stop();
   // total time wil be automatically printed upon exit.
-*/
+  
   return 0;
 }
